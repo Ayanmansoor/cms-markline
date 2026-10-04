@@ -10,11 +10,11 @@ interface ShiprocketSyncDeskProps {
 }
 
 export function ShiprocketSyncDesk({ shp, formatCurrency }: ShiprocketSyncDeskProps) {
-  // if (!shp.shiprocketOrderDetails) return null
+  if (!shp.shiprocketOrderDetails) return null
 
   const sr = shp.shiprocketOrderDetails
-  const srShipment = Array.isArray(sr.shipments) ? sr.shipments[0] : sr.shipments
-  const awbCode = srShipment?.awb || sr.awb_data?.awb || null
+  const srShipment = Array.isArray(sr?.shipments) ? sr.shipments[0] : sr?.shipments
+  const awbCode = srShipment?.awb || sr?.awb_data?.awb || null
   const courier = srShipment?.courier || null
   const shipStatus = srShipment?.status || null
 

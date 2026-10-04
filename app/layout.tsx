@@ -22,17 +22,12 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("antialiased", fontMono.variable, "font-sans", geist.variable)}
+      className={cn("antialiased light", fontMono.variable, "font-sans", geist.variable)}
     >
       <body>
-        {/* <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||t==='light'){document.documentElement.classList.add(t)}else if(window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.classList.add('dark')}}catch(e){}})()`,
-          }}
-        /> */}
         <QueryProvider>
           <SessionProvider>
-            <ThemeProvider>
+            <ThemeProvider defaultTheme="light">
               <TooltipProvider delayDuration={0}>
                 {children}
               </TooltipProvider>

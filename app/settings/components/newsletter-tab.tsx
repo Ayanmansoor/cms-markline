@@ -76,10 +76,10 @@ export function NewsletterTab() {
           <Table>
             <TableHeader className="bg-[#f8fafc]">
               <TableRow className="border-b border-slate-100 hover:bg-transparent">
-                <TableHead className="h-11 text-[9px] font-black text-slate-500 uppercase tracking-widest pl-6">ID</TableHead>
-                <TableHead className="h-11 text-[9px] font-black text-slate-500 uppercase tracking-widest">SUBSCRIBER EMAIL</TableHead>
-                <TableHead className="h-11 text-[9px] font-black text-slate-500 uppercase tracking-widest">SIGN UP DATE</TableHead>
-                <TableHead className="h-11 text-[9px] font-black text-slate-500 uppercase tracking-widest text-center pr-6">ACTIONS</TableHead>
+                <TableHead className="h-11 text-xs font-bold text-slate-500 tracking-wider pl-6">ID</TableHead>
+                <TableHead className="h-11 text-xs font-bold text-slate-500 tracking-wider">Subscriber Email</TableHead>
+                <TableHead className="h-11 text-xs font-bold text-slate-500 tracking-wider">Sign Up Date</TableHead>
+                <TableHead className="h-11 text-xs font-bold text-slate-500 tracking-wider text-center pr-6">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

@@ -423,8 +423,8 @@ export default function ClaimDetailPage() {
   if (isLoading) {
     return (
       <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset className="bg-[#f4f7fb] flex flex-col h-screen overflow-hidden">
+        <AppSidebar variant="inset" />
+        <SidebarInset className="bg-white flex flex-col h-screen overflow-hidden">
           <SiteHeader />
           <div className="flex-1 flex items-center justify-center">
             <span className="text-slate-400 font-semibold text-xs animate-pulse">Loading claim details...</span>
@@ -437,8 +437,8 @@ export default function ClaimDetailPage() {
   if (error || !claim) {
     return (
       <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset className="bg-[#f4f7fb] flex flex-col h-screen overflow-hidden">
+        <AppSidebar variant="inset" />
+        <SidebarInset className="bg-white flex flex-col h-screen overflow-hidden">
           <SiteHeader />
           <div className="flex-1 flex flex-col items-center justify-center gap-2">
             <span className="text-red-500 font-bold text-sm">Failed to load claim details</span>
@@ -461,8 +461,8 @@ export default function ClaimDetailPage() {
 
   return (
     <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className="bg-[#f4f7fb] flex flex-col h-screen overflow-hidden">
+      <AppSidebar variant="inset" />
+      <SidebarInset className="bg-white flex flex-col h-screen overflow-hidden">
         <SiteHeader />
 
         <div className="flex-1 overflow-y-auto p-6 lg:p-8">
@@ -545,7 +545,7 @@ export default function ClaimDetailPage() {
                     <CardContent className="p-6 space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Claim Type</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Claim Type</Label>
                           <Input 
                             {...register("claimType")}
                             placeholder="e.g. Return, Replacement"
@@ -553,7 +553,7 @@ export default function ClaimDetailPage() {
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Reason</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Reason</Label>
                           <Input 
                             {...register("reason")}
                             placeholder="e.g. Damaged during shipping"
@@ -563,7 +563,7 @@ export default function ClaimDetailPage() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Claim Description / Message</Label>
+                        <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Claim Description / Message</Label>
                         <textarea
                           {...register("description")}
                           rows={4}
@@ -573,7 +573,7 @@ export default function ClaimDetailPage() {
                       </div>
 
                       <div className="space-y-3">
-                        <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Customer Uploaded Media Gallery</Label>
+                        <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Customer Uploaded Media Gallery</Label>
                         {claim.media_urls && claim.media_urls.length > 0 ? (
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             {claim.media_urls.map((url: string, index: number) => (
@@ -652,7 +652,7 @@ export default function ClaimDetailPage() {
                       
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Pickup Status</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Pickup Status</Label>
                           <select
                             {...register("pickupStatus")}
                             className="w-full h-9 rounded-md border border-slate-200 bg-transparent px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400"
@@ -663,7 +663,7 @@ export default function ClaimDetailPage() {
                           </select>
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Pickup Scheduled At</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Pickup Scheduled At</Label>
                           <Input 
                             type="datetime-local"
                             {...register("pickupScheduledAt")}
@@ -671,7 +671,7 @@ export default function ClaimDetailPage() {
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Courier Partner</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Courier Partner</Label>
                           <Input 
                             {...register("courierName")}
                             placeholder="e.g. Delhivery, BlueDart"
@@ -682,7 +682,7 @@ export default function ClaimDetailPage() {
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">AWB Code</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">AWB Code</Label>
                           <Input 
                             {...register("awbCode")}
                             placeholder="AWB tracking number"
@@ -690,7 +690,7 @@ export default function ClaimDetailPage() {
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Tracking Number</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Tracking Number</Label>
                           <Input 
                             {...register("trackingNumber")}
                             placeholder="Tracking ID"
@@ -698,7 +698,7 @@ export default function ClaimDetailPage() {
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Tracking URL</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Tracking URL</Label>
                           <Input 
                             {...register("trackingUrl")}
                             placeholder="https://tracking..."
@@ -709,7 +709,7 @@ export default function ClaimDetailPage() {
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Label URL</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Label URL</Label>
                           <Input 
                             {...register("labelUrl")}
                             placeholder="Shipping label link"
@@ -717,7 +717,7 @@ export default function ClaimDetailPage() {
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Manifest URL</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Manifest URL</Label>
                           <Input 
                             {...register("manifestUrl")}
                             placeholder="Manifest sheet link"
@@ -746,7 +746,7 @@ export default function ClaimDetailPage() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-4">
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Shiprocket Order ID</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Shiprocket Order ID</Label>
                           <Input 
                             {...register("shiprocketOrderId")}
                             placeholder="Shiprocket reference ID"
@@ -754,7 +754,7 @@ export default function ClaimDetailPage() {
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Shipment ID</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Shipment ID</Label>
                           <Input 
                             {...register("shipmentId")}
                             placeholder="Carrier Shipment ID"
@@ -765,7 +765,7 @@ export default function ClaimDetailPage() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-4">
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Received At Warehouse</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Received At Warehouse</Label>
                           <Input 
                             type="datetime-local"
                             {...register("receivedAt")}
@@ -773,7 +773,7 @@ export default function ClaimDetailPage() {
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Received By (User UUID)</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Received By (User UUID)</Label>
                           <Input 
                             {...register("receivedBy")}
                             placeholder="Handler Admin UUID"
@@ -784,7 +784,7 @@ export default function ClaimDetailPage() {
 
                       {/* Pickup Address details */}
                       <div className="p-4 bg-slate-50 rounded-lg border border-slate-100 space-y-3">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase block tracking-wider">Customer Return Pickup Address</span>
+                        <span className="text-[10px] font-bold text-slate-400 capitalize block tracking-wider">Customer Return Pickup Address</span>
                         {claim.address_details ? (
                           <div className="space-y-1 text-xs">
                             <p className="font-bold text-slate-900 flex items-center gap-1.5">
@@ -841,7 +841,7 @@ export default function ClaimDetailPage() {
                       
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">QC Decision (Status)</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">QC Decision (Status)</Label>
                           <select
                             {...register("qcStatus")}
                             className="w-full h-9 rounded-md border border-slate-200 bg-transparent px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400"
@@ -853,7 +853,7 @@ export default function ClaimDetailPage() {
                           </select>
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">QC Checked At</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">QC Checked At</Label>
                           <Input 
                             type="datetime-local"
                             {...register("qcCheckedAt")}
@@ -861,7 +861,7 @@ export default function ClaimDetailPage() {
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Checked By (Agent UUID)</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Checked By (Agent UUID)</Label>
                           <Input 
                             {...register("qcCheckedBy")}
                             placeholder="Inspector UUID"
@@ -871,7 +871,7 @@ export default function ClaimDetailPage() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">QC Images (Comma Separated URLs)</Label>
+                        <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">QC Images (Comma Separated URLs)</Label>
                         <Input 
                           {...register("qcImagesStr")}
                           placeholder="https://image-url-1.jpg, https://image-url-2.jpg"
@@ -881,7 +881,7 @@ export default function ClaimDetailPage() {
 
                       {claim.qc_images && claim.qc_images.length > 0 && (
                         <div className="space-y-2">
-                          <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Inspected Item Photos</Label>
+                          <Label className="text-[10px] font-bold text-slate-400 capitalize tracking-wider block">Inspected Item Photos</Label>
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-3 rounded-lg border border-slate-100">
                             {claim.qc_images.map((url: string, idx: number) => (
                               <div 
@@ -901,7 +901,7 @@ export default function ClaimDetailPage() {
                       )}
 
                       <div className="space-y-1.5">
-                        <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Inspector Notes & Description</Label>
+                        <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Inspector Notes & Description</Label>
                         <textarea
                           {...register("qcNote")}
                           rows={3}
@@ -967,7 +967,7 @@ export default function ClaimDetailPage() {
                       
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Refund Status</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Refund Status</Label>
                           <select
                             {...register("refundStatus")}
                             className="w-full h-9 rounded-md border border-slate-200 bg-transparent px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400"
@@ -978,7 +978,7 @@ export default function ClaimDetailPage() {
                           </select>
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Refund Amount (INR)</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Refund Amount (INR)</Label>
                           <Input 
                             type="number"
                             step="0.01"
@@ -988,7 +988,7 @@ export default function ClaimDetailPage() {
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Refund Reason</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Refund Reason</Label>
                           <Input 
                             {...register("refundReason")}
                             placeholder="e.g. Broken packaging / defect"
@@ -999,7 +999,7 @@ export default function ClaimDetailPage() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-4">
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Razorpay Payment ID</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Razorpay Payment ID</Label>
                           <Input 
                             {...register("razorpayPaymentId")}
                             placeholder="pay_..."
@@ -1007,7 +1007,7 @@ export default function ClaimDetailPage() {
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Razorpay Refund ID</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Razorpay Refund ID</Label>
                           <Input 
                             {...register("razorpayRefundId")}
                             placeholder="rfnd_..."
@@ -1018,7 +1018,7 @@ export default function ClaimDetailPage() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-4">
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Refund Processed At</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Refund Processed At</Label>
                           <Input 
                             type="datetime-local"
                             {...register("refundProcessedAt")}
@@ -1026,7 +1026,7 @@ export default function ClaimDetailPage() {
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Processed By (Admin UUID)</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Processed By (Admin UUID)</Label>
                           <Input 
                             {...register("refundProcessedBy")}
                             placeholder="Processor Admin UUID"
@@ -1036,7 +1036,7 @@ export default function ClaimDetailPage() {
                       </div>
 
                       <div className="space-y-1.5 border-t border-slate-100 pt-4">
-                        <Label className="text-[10px] font-bold text-red-500 uppercase block tracking-wider">Refund Failure Reason</Label>
+                        <Label className="text-[10px] font-bold text-red-500 capitalize block tracking-wider">Refund Failure Reason</Label>
                         <textarea
                           {...register("refundFailureReason")}
                           rows={2}
@@ -1071,7 +1071,7 @@ export default function ClaimDetailPage() {
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Assigned Supervisor (Agent UUID)</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Assigned Supervisor (Agent UUID)</Label>
                           <Input 
                             {...register("assignedTo")}
                             placeholder="Assigned Supervisor Agent UUID"
@@ -1095,7 +1095,7 @@ export default function ClaimDetailPage() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-4">
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Customer Notified At</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Customer Notified At</Label>
                           <Input 
                             type="datetime-local"
                             {...register("customerNotifiedAt")}
@@ -1103,7 +1103,7 @@ export default function ClaimDetailPage() {
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Approved By Supervisor (Admin UUID)</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Approved By Supervisor (Admin UUID)</Label>
                           <Input 
                             {...register("approvedBy")}
                             placeholder="Approver Admin UUID"
@@ -1114,7 +1114,7 @@ export default function ClaimDetailPage() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-4">
                         <div className="space-y-1.5">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Approved At Timestamp</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Approved At Timestamp</Label>
                           <Input 
                             type="datetime-local"
                             {...register("approvedAt")}
@@ -1124,7 +1124,7 @@ export default function ClaimDetailPage() {
                       </div>
 
                       <div className="space-y-1.5 border-t border-slate-100 pt-4">
-                        <Label className="text-[10px] font-bold text-rose-500 uppercase block tracking-wider">Rejected Reason / Decline Details</Label>
+                        <Label className="text-[10px] font-bold text-rose-500 capitalize block tracking-wider">Rejected Reason / Decline Details</Label>
                         <textarea
                           {...register("rejectedReason")}
                           rows={2}
@@ -1134,7 +1134,7 @@ export default function ClaimDetailPage() {
                       </div>
 
                       <div className="space-y-1.5 border-t border-slate-100 pt-4">
-                        <Label className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider">Admin Internal Notes (Private to Team)</Label>
+                        <Label className="text-[10px] font-bold text-slate-500 capitalize block tracking-wider">Admin Internal Notes (Private to Team)</Label>
                         <textarea
                           {...register("adminNote")}
                           rows={3}
@@ -1164,11 +1164,11 @@ export default function ClaimDetailPage() {
               {/* Status control */}
               <Card className="shadow-sm border border-slate-200 rounded-xl bg-white">
                 <CardHeader className="pb-3 border-b border-slate-100 bg-slate-50/50">
-                  <CardTitle className="text-xs font-black text-slate-900 uppercase tracking-wider">Review Status Control</CardTitle>
+                  <CardTitle className="text-xs font-black text-slate-900 capitalize tracking-wider">Review Status Control</CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 space-y-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Select Overall Status</Label>
+                    <Label className="text-[10px] font-bold text-slate-400 capitalize tracking-wider">Select Overall Status</Label>
                     <select
                       value={status}
                       onChange={(e) => handleStatusChange(e.target.value)}
@@ -1184,10 +1184,10 @@ export default function ClaimDetailPage() {
                   </div>
 
                   <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                    <span className="text-[9px] font-black text-slate-400 uppercase">Live Badge</span>
+                    <span className="text-[9px] font-black text-slate-400 capitalize">Live Badge</span>
                     <Badge variant="outline" className={`${
                       STATUS_OPTIONS.find(o => o.value === status)?.color || "bg-slate-50 text-slate-600 border-slate-200"
-                    } text-[9px] font-bold uppercase tracking-wider py-0.5 px-2`}>
+                    } text-[9px] font-bold capitalize tracking-wider py-0.5 px-2`}>
                       {STATUS_OPTIONS.find(o => o.value === status)?.label || status}
                     </Badge>
                   </div>
@@ -1197,7 +1197,7 @@ export default function ClaimDetailPage() {
               {/* Inquiry Origin */}
               <Card className="shadow-sm border border-slate-200 rounded-xl bg-white">
                 <CardHeader className="pb-3 border-b border-slate-100">
-                  <CardTitle className="text-xs font-black text-slate-900 uppercase tracking-wider">Inquiry Origin</CardTitle>
+                  <CardTitle className="text-xs font-black text-slate-900 capitalize tracking-wider">Inquiry Origin</CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 space-y-4">
                   
@@ -1207,7 +1207,7 @@ export default function ClaimDetailPage() {
                       <User className="h-4 w-4" />
                     </div>
                     <div className="space-y-0.5">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Customer Details</span>
+                      <span className="text-[10px] font-bold text-slate-400 capitalize tracking-wider block">Customer Details</span>
                       <span className="font-bold text-slate-950 block">{claim.name}</span>
                       <span className="font-semibold text-slate-500 flex items-center gap-1 mt-0.5">
                         <Mail className="h-3 w-3" /> {claim.email}
@@ -1221,7 +1221,7 @@ export default function ClaimDetailPage() {
                       <Calendar className="h-4 w-4" />
                     </div>
                     <div className="space-y-0.5">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Submitted On</span>
+                      <span className="text-[10px] font-bold text-slate-400 capitalize tracking-wider block">Submitted On</span>
                       <span className="font-bold text-slate-800 block">{createdDateStr}</span>
                     </div>
                   </div>
@@ -1232,7 +1232,7 @@ export default function ClaimDetailPage() {
                       <Bookmark className="h-4 w-4" />
                     </div>
                     <div className="space-y-0.5">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Claimed Product</span>
+                      <span className="text-[10px] font-bold text-slate-400 capitalize tracking-wider block">Claimed Product</span>
                       <span className="font-bold text-slate-800 block leading-tight">{claim.productname}</span>
                     </div>
                   </div>
@@ -1243,7 +1243,7 @@ export default function ClaimDetailPage() {
                       <ShoppingBag className="h-4 w-4" />
                     </div>
                     <div className="space-y-0.5 flex-1 min-w-0">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase block">Order ID</span>
+                      <span className="text-[10px] font-bold text-slate-400 capitalize block">Order ID</span>
                       {claim.orderID ? (
                         <div className="flex items-center justify-between gap-2 mt-0.5">
                           <span className="font-mono font-bold text-blue-600 block truncate">{claim.orderID}</span>

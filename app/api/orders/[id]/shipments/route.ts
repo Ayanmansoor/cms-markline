@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient } from '@supabase/supabase-js'
+import { getShiprocketToken } from '@/lib/shiprocket'
 
 async function getSupabaseClient() {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -28,14 +29,7 @@ function formatAddress(addr: string): string {
   return 'Flat No. 1, ' + addr;
 }
 
-async function getShiprocketToken(): Promise<string> {
-  const cookieStore = await cookies()
-  const token = cookieStore.get('shiprocket_token')?.value
-  if (!token) {
-    throw new Error('No Shiprocket token found in cookies. Please authenticate in Settings.')
-  }
-  return token
-}
+
 
 export async function GET(
   _request: Request,
@@ -141,7 +135,7 @@ export async function POST(
         country: 'India',
         pin_code: parseInt(warehouse.pincode || '0')
       }
-      await fetch('https://apiv2.shiprocket.in/v1/external/settings/company/addpickup', {
+      await fetch(`${process.env.SHIPROCKET_API_URL}/settings/company/addpickup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(addPickupPayload)
@@ -149,10 +143,10 @@ export async function POST(
     } catch (_) {}
 
     let shiprocketPayload: any = {}
-    let endpointUrl = 'https://apiv2.shiprocket.in/v1/external/orders/create/adhoc'
+    let endpointUrl = `${process.env.SHIPROCKET_API_URL}/orders/create/adhoc`
 
     if (isReturn) {
-      endpointUrl = 'https://apiv2.shiprocket.in/v1/external/orders/create/return'
+      endpointUrl = `${process.env.SHIPROCKET_API_URL}/orders/create/return`
       const returnItems = (order.order_items || []).map((item: any) => ({
         name: item.product?.name || 'shoes',
         qc_enable: true,
@@ -248,9 +242,27 @@ export async function POST(
     })
 
     const shiprocketData = await shiprocketRes.json()
+    console.log('SHIPROCKET RESPONSE STATUS:', shiprocketRes.status, 'BODY:', JSON.stringify(shiprocketData, null, 2))
 
-    if (!shiprocketRes.ok) {
-      return NextResponse.json({ error: shiprocketData.message || 'Shiprocket order creation failed', details: shiprocketData }, { status: 400 })
+    let errorMessage = shiprocketData.message || 'Shiprocket order creation failed'
+    if (shiprocketData.errors && typeof shiprocketData.errors === 'object') {
+      const errList = Object.entries(shiprocketData.errors).map(([field, errs]: [string, any]) => {
+        const msg = Array.isArray(errs) ? errs.join(', ') : String(errs)
+        return `${field}: ${msg}`
+      })
+      if (errList.length > 0) {
+        errorMessage = `${errorMessage} (${errList.join('; ')})`
+      }
+    }
+
+    const isFailureResponse = !shiprocketRes.ok ||
+      !shiprocketData.order_id ||
+      shiprocketData.status_code === 0 ||
+      (typeof shiprocketData.message === 'string' && shiprocketData.message.toLowerCase().includes('wrong pickup location'))
+
+    if (isFailureResponse) {
+      console.error('Shiprocket order creation error:', shiprocketData)
+      return NextResponse.json({ error: errorMessage, details: shiprocketData }, { status: 400 })
     }
 
     const shipmentRow: any = {

@@ -37,7 +37,7 @@ export async function GET(request: Request) {
     // Query product table, join product_variants and brands
     let query = supabase
       .from('product')
-      .select('*, product_variants(*), brands!brand_key(name)', { count: 'exact' })
+      .select('*, product_variants(*), brands!brand_key(name), group!grouptype(id, heading)', { count: 'exact' })
 
     if (gender) {
       query = query.eq('gender', gender.toUpperCase())
@@ -85,18 +85,18 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: fallbackError.message }, { status: 400 })
       }
 
-      return NextResponse.json({ 
-        success: true, 
-        products: fallbackData, 
+      return NextResponse.json({
+        success: true,
+        products: fallbackData,
         totalCount: fallbackCount || 0,
         page,
         limit
       })
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      products: data, 
+    return NextResponse.json({
+      success: true,
+      products: data,
       totalCount: count || 0,
       page,
       limit
@@ -195,31 +195,41 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    const { productId, is_active } = await request.json()
+    const { productId, is_active, grouptype } = await request.json()
     if (!productId) {
       return NextResponse.json({ error: 'Missing product ID' }, { status: 400 })
     }
 
     const supabase = await getSupabaseClient()
 
-    // 1. Update the product table's is_active field
+    const updateFields: any = {}
+    if (is_active !== undefined) {
+      updateFields.is_active = is_active
+    }
+    if (grouptype !== undefined) {
+      updateFields.grouptype = grouptype ? parseInt(String(grouptype)) : null
+    }
+
+    // 1. Update the product table fields
     const { error: productError } = await supabase
       .from('product')
-      .update({ is_active })
+      .update(updateFields)
       .eq('id', productId)
 
     if (productError) {
       return NextResponse.json({ error: productError.message }, { status: 400 })
     }
 
-    // 2. Cascade active status to variants: if product is active, all its variants become active
-    const { error: variantsError } = await supabase
-      .from('product_variants')
-      .update({ is_active })
-      .eq('products_id', productId)
+    // 2. Cascade active status to variants if is_active was provided
+    if (is_active !== undefined) {
+      const { error: variantsError } = await supabase
+        .from('product_variants')
+        .update({ is_active })
+        .eq('products_id', productId)
 
-    if (variantsError) {
-      return NextResponse.json({ error: variantsError.message }, { status: 400 })
+      if (variantsError) {
+        return NextResponse.json({ error: variantsError.message }, { status: 400 })
+      }
     }
 
     return NextResponse.json({ success: true })

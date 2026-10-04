@@ -4,6 +4,7 @@ import React from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { FileText } from "lucide-react"
+import { getFulfillmentStatusBadge } from "@/lib/utils"
 
 interface DatabaseOrderSummaryProps {
   shp: any
@@ -13,10 +14,12 @@ interface DatabaseOrderSummaryProps {
 export function DatabaseOrderSummary({ shp, formatCurrency }: DatabaseOrderSummaryProps) {
   if (!shp.order) return null
 
+  const ffBadge = getFulfillmentStatusBadge(shp.order.fulfillmentStatus)
+
   return (
-    <Card className="border-slate-200 bg-white shadow-sm rounded-2xl">
+    <Card className="border-slate-200/80 bg-white shadow-2xs rounded-2xl">
       <CardContent className="p-6">
-        <h3 className="text-xs font-bold text-slate-400 tracking-wider mb-4 flex items-center gap-2">
+        <h3 className="text-xs font-bold text-slate-700 tracking-wider mb-4 flex items-center gap-2">
           <FileText className="h-4 w-4 text-purple-600" />
           Order & Payment Details (Database)
         </h3>
@@ -24,18 +27,18 @@ export function DatabaseOrderSummary({ shp, formatCurrency }: DatabaseOrderSumma
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold mb-4">
           <div>
             <p className="text-[10px] font-bold text-slate-400 tracking-wider mb-0.5">Payment Status</p>
-            <Badge className={`text-[10px] font-extrabold ${
+            <Badge variant="outline" className={`text-[10px] font-extrabold ${
               shp.order.paymentStatus === 'PAID'
-                ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
-                : 'bg-amber-100 text-amber-700 border-amber-200'
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                : 'bg-amber-50 text-amber-700 border-amber-200'
             }`}>
               {shp.order.paymentStatus || 'PENDING'}
             </Badge>
           </div>
           <div>
             <p className="text-[10px] font-bold text-slate-400 tracking-wider mb-0.5">Fulfillment Status</p>
-            <Badge className="text-[10px] font-extrabold bg-blue-100 text-blue-700 border border-blue-200">
-              {shp.order.fulfillmentStatus || 'UNFULFILLED'}
+            <Badge variant="outline" className={`text-[10px] ${ffBadge.className}`}>
+              {ffBadge.label}
             </Badge>
           </div>
           <div>

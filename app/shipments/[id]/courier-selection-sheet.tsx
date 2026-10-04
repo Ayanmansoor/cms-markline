@@ -8,6 +8,55 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Truck, Loader2 } from "lucide-react"
 import { toast } from "sonner"
+import { shipmentService } from "@/services/shipment.service"
+
+// ─── Radial Rating Badge Component ─────────────────────────────────────────
+const RatingRadial = ({ rating }: { rating: number | string }) => {
+  const num = parseFloat(String(rating || "4.5"))
+  const displayVal = isNaN(num) ? "4.5" : (num % 1 === 0 ? num.toString() : (num * 10) % 1 === 0 ? num.toFixed(1) : num.toFixed(2))
+  const isHigh = num >= 4.0
+  const isMid = num >= 3.0 && num < 4.0
+
+  const ringColor = isHigh ? "#10b981" : isMid ? "#f59e0b" : "#94a3b8"
+  const textColor = isHigh ? "text-emerald-700" : isMid ? "text-amber-700" : "text-slate-600"
+  const bgColor = isHigh ? "bg-emerald-50/40" : isMid ? "bg-amber-50/40" : "bg-slate-50"
+
+  const radius = 13
+  const strokeWidth = 2.2
+  const circumference = 2 * Math.PI * radius
+  const pct = Math.min(Math.max(num / 5, 0), 1)
+  const strokeDashoffset = circumference - pct * circumference
+
+  return (
+    <div className={`relative h-8 w-8 rounded-full flex items-center justify-center ${bgColor} shadow-2xs`}>
+      <svg className="absolute inset-0 h-full w-full -rotate-90" viewBox="0 0 36 36">
+        <circle
+          cx="18"
+          cy="18"
+          r={radius}
+          fill="none"
+          stroke={ringColor}
+          strokeWidth={strokeWidth}
+          strokeOpacity="0.2"
+        />
+        <circle
+          cx="18"
+          cy="18"
+          r={radius}
+          fill="none"
+          stroke={ringColor}
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+        />
+      </svg>
+      <span className={`text-[10px] font-extrabold tracking-tighter ${textColor} z-10`}>
+        {displayVal}
+      </span>
+    </div>
+  )
+}
 
 interface CourierSelectionSheetProps {
   isOpen: boolean
@@ -24,6 +73,7 @@ export function CourierSelectionSheet({
 }: CourierSelectionSheetProps) {
   const queryClient = useQueryClient()
   const [activeCourierTab, setActiveCourierTab] = useState("Recommended")
+  const [selectedCourierId, setSelectedCourierId] = useState<string | null>(null)
 
   // Helper selectors for serviceability
   const rawWarehousePincode = String(
@@ -54,31 +104,35 @@ export function CourierSelectionSheet({
   const declaredValue = String(shp?.order?.grandTotal || shp?.shiprocketOrderDetails?.total || '100')
   const srOrderId = shp?.shiprocketOrderId || shp?.shiprocketOrderDetails?.id || ''
 
-  // Query Shiprocket Courier Serviceability
+  // Query Shiprocket Courier Serviceability via axios shipmentService
   const { data: serviceabilityRes, isLoading: isServiceabilityLoading } = useQuery({
     queryKey: ["shipmentCourierServiceability", shipmentId, pickupPincode, deliveryPincode, weight, cod, isReturn, declaredValue, srOrderId],
     queryFn: async () => {
       if (!pickupPincode || !deliveryPincode) return null
-      let url = `/api/shipments/serviceability?pickup_postcode=${pickupPincode}&delivery_postcode=${deliveryPincode}&weight=${weight}&cod=${cod}&is_return=${isReturn}&declared_value=${declaredValue}`
-      if (srOrderId) {
-        url += `&order_id=${srOrderId}`
+      const paramsObj = {
+        pickup_postcode: pickupPincode,
+        delivery_postcode: deliveryPincode,
+        weight,
+        cod,
+        is_return: isReturn,
+        declared_value: declaredValue,
+        order_id: srOrderId || undefined
       }
-      const res = await fetch(url)
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err.error || "Failed to load courier serviceability")
-      }
-      return res.json()
+      console.log("[DEBUG CourierSelectionSheet] Fetching serviceability with params:", paramsObj)
+      const res = await shipmentService.getServiceability(paramsObj)
+      console.log("[DEBUG CourierSelectionSheet] Serviceability raw response from API:", res)
+      return res
     },
     enabled: isOpen && !!pickupPincode && !!deliveryPincode
   })
 
-
   // Filter couriers dynamically based on tabs
   const filteredCouriers = useMemo(() => {
     const list = serviceabilityRes?.data?.data?.available_courier_companies || []
+    console.log("[DEBUG CourierSelectionSheet] Available courier companies:", list)
     if (activeCourierTab === "Recommended") {
       const recommendedId = serviceabilityRes?.data?.data?.shiprocket_recommended_courier_id
+      console.log("[DEBUG CourierSelectionSheet] Recommended courier ID:", recommendedId)
       return [...list].sort((a: any, b: any) => {
         if (a.courier_company_id === recommendedId) return -1
         if (b.courier_company_id === recommendedId) return 1
@@ -94,27 +148,26 @@ export function CourierSelectionSheet({
     return list
   }, [serviceabilityRes, activeCourierTab])
 
-  // Assign courier mutation
+  // Assign courier mutation via axios shipmentService
   const assignCourierMutation = useMutation({
     mutationFn: async ({ courierId, courierName }: { courierId: string; courierName: string }) => {
-      const res = await fetch(`/api/shipments/${shipmentId}/assign-courier`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ courierId, courierName })
-      })
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error || "Failed to assign courier")
-      }
-      return res.json()
+      console.log("[DEBUG CourierSelectionSheet] Assigning courier:", { shipmentId, courierId, courierName })
+      const res = await shipmentService.assignCourier(shipmentId, { courierId, courierName })
+      console.log("[DEBUG CourierSelectionSheet] Assign courier API response:", res)
+      return res
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("[DEBUG CourierSelectionSheet] Assign courier onSuccess data:", data)
       toast.success("Courier assigned and AWB generated successfully!")
       onOpenChange(false)
       queryClient.invalidateQueries({ queryKey: ["shipmentDetail", shipmentId] })
     },
     onError: (err: any) => {
-      toast.error(err.message)
+      console.error("[DEBUG CourierSelectionSheet] Assign courier onError:", err)
+      toast.error(err.message || "Failed to assign courier")
+    },
+    onSettled: () => {
+      setSelectedCourierId(null)
     }
   })
 
@@ -166,10 +219,10 @@ export function CourierSelectionSheet({
             {/* Left Pane: Order details */}
             <div className="w-full md:w-72 bg-white border-r border-slate-200 p-6 space-y-6 overflow-y-auto shrink-0">
               <div>
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-3">Order Details</h3>
+                <h3 className="text-xs font-black text-slate-700 tracking-wider mb-3">Order Details</h3>
                 <div className="space-y-4 text-xs font-semibold text-slate-700">
                   <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase mb-0.5">Pickup From</p>
+                    <p className="text-[10px] text-slate-400 font-bold mb-0.5">Pickup From</p>
                     <p className="text-slate-900 font-extrabold">{pickupPincode || 'N/A'}</p>
                     {isReverse ? (
                       shp?.order?.address && (
@@ -182,7 +235,7 @@ export function CourierSelectionSheet({
                     )}
                   </div>
                   <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase mb-0.5">Deliver To</p>
+                    <p className="text-[10px] text-slate-400 font-bold mb-0.5">Deliver To</p>
                     <p className="text-slate-900 font-extrabold">{deliveryPincode || 'N/A'}</p>
                     {isReverse ? (
                       shp?.warehouse && (
@@ -197,15 +250,15 @@ export function CourierSelectionSheet({
                     )}
                   </div>
                   <div className="border-t border-slate-100 pt-3">
-                    <p className="text-[10px] text-slate-400 font-bold uppercase mb-0.5">Order Value</p>
+                    <p className="text-[10px] text-slate-400 font-bold mb-0.5">Order Value</p>
                     <p className="text-slate-900 font-extrabold text-sm">{formatCurrency(shp?.order?.grandTotal || 0)}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase mb-0.5">Payment Mode</p>
-                    <p className="text-slate-900 font-extrabold uppercase">{shp?.order?.paymentMethod || 'Prepaid'}</p>
+                    <p className="text-[10px] text-slate-400 font-bold mb-0.5">Payment Mode</p>
+                    <p className="text-slate-900 font-extrabold">{shp?.order?.paymentMethod || 'Prepaid'}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase mb-0.5">Applicable Weight</p>
+                    <p className="text-[10px] text-slate-400 font-bold mb-0.5">Applicable Weight</p>
                     <p className="text-slate-900 font-extrabold">{weight} Kg</p>
                   </div>
                 </div>
@@ -215,17 +268,17 @@ export function CourierSelectionSheet({
             {/* Right Pane: Courier Selection */}
             <div className="flex-1 flex flex-col overflow-hidden p-6 bg-slate-50 min-h-0">
               <Tabs value={activeCourierTab} onValueChange={setActiveCourierTab} className="flex-1 flex flex-col overflow-hidden min-h-0">
-                <TabsList className="grid w-full grid-cols-4 bg-slate-200/50 p-1 border border-slate-200 rounded-lg shadow-sm mb-4 shrink-0 max-w-md">
-                  <TabsTrigger value="Recommended" className="text-xs font-bold py-1.5 data-[state=active]:bg-white rounded-md">Recommended</TabsTrigger>
-                  <TabsTrigger value="Surface" className="text-xs font-bold py-1.5 data-[state=active]:bg-white rounded-md">Surface</TabsTrigger>
-                  <TabsTrigger value="Air" className="text-xs font-bold py-1.5 data-[state=active]:bg-white rounded-md">Air</TabsTrigger>
-                  <TabsTrigger value="All" className="text-xs font-bold py-1.5 data-[state=active]:bg-white rounded-md">All</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-4 bg-slate-200/50 p-1 border border-slate-200 rounded-lg shadow-2xs mb-4 shrink-0 max-w-md">
+                  <TabsTrigger value="Recommended" className="text-xs font-bold py-1.5 data-[state=active]:bg-slate-900 data-[state=active]:text-white rounded-md">Recommended</TabsTrigger>
+                  <TabsTrigger value="Surface" className="text-xs font-bold py-1.5 data-[state=active]:bg-slate-900 data-[state=active]:text-white rounded-md">Surface</TabsTrigger>
+                  <TabsTrigger value="Air" className="text-xs font-bold py-1.5 data-[state=active]:bg-slate-900 data-[state=active]:text-white rounded-md">Air</TabsTrigger>
+                  <TabsTrigger value="All" className="text-xs font-bold py-1.5 data-[state=active]:bg-slate-900 data-[state=active]:text-white rounded-md">All</TabsTrigger>
                 </TabsList>
 
                 <div className="flex-1 overflow-y-auto min-h-0 space-y-4 pr-1">
                   {isServiceabilityLoading ? (
                     <div className="py-24 text-center">
-                      <Loader2 className="h-8 w-8 text-blue-600 animate-spin mx-auto mb-3" />
+                      <Loader2 className="h-8 w-8 text-slate-700 animate-spin mx-auto mb-3" />
                       <p className="text-xs font-semibold text-slate-500">Checking serviceability for route ({pickupPincode} → {deliveryPincode})...</p>
                     </div>
                   ) : filteredCouriers.length === 0 ? (
@@ -236,7 +289,7 @@ export function CourierSelectionSheet({
                   ) : (
                     <div className="space-y-3">
                       {/* Header Columns */}
-                      <div className="grid grid-cols-12 items-center px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 gap-2">
+                      <div className="grid grid-cols-12 items-center px-4 text-[10px] font-bold text-slate-400 tracking-wider mb-2 gap-2">
                         <div className="col-span-4">Courier Partner</div>
                         <div className="col-span-1 text-center">Rating</div>
                         <div className="col-span-2 text-center">Expected Pickup</div>
@@ -256,7 +309,7 @@ export function CourierSelectionSheet({
                           <div
                             key={c.courier_company_id || c.id || Math.random()}
                             className={`grid grid-cols-12 items-center bg-white p-4 rounded-xl border transition-all gap-2 ${
-                              isRecommended ? 'border-[#4f46e5] shadow-xs bg-indigo-50/10' : 'border-slate-200 hover:border-slate-300'
+                              isRecommended ? 'border-slate-400 shadow-2xs bg-slate-50/50' : 'border-slate-200 hover:border-slate-300'
                             }`}
                           >
                             {/* Courier Partner Name */}
@@ -265,7 +318,7 @@ export function CourierSelectionSheet({
                                 <span className="flex items-center gap-1.5 text-xs font-bold text-slate-900 truncate">
                                   {name}
                                   {isRecommended && (
-                                    <Badge className="text-[8px] font-black tracking-wide uppercase px-1.5 py-0.5 bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 shrink-0">
+                                    <Badge className="text-[8px] font-bold tracking-wide px-1.5 py-0.5 bg-slate-900 text-white hover:bg-black shrink-0">
                                       Recommended
                                     </Badge>
                                   )}
@@ -278,9 +331,7 @@ export function CourierSelectionSheet({
 
                             {/* Rating */}
                             <div className="col-span-1 flex justify-center">
-                              <span className="h-7 w-7 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center font-bold text-xs">
-                                {rating || '4.5'}
-                              </span>
+                              <RatingRadial rating={rating} />
                             </div>
 
                             {/* Expected Pickup */}
@@ -304,17 +355,26 @@ export function CourierSelectionSheet({
 
                             {/* Ship Now Action */}
                             <div className="col-span-2 text-right">
-                              <Button
-                                disabled={assignCourierMutation.isPending}
-                                onClick={() => assignCourierMutation.mutate({ courierId: String(c.courier_company_id), courierName: name })}
-                                className="text-xs font-bold bg-[#4f46e5] text-white hover:bg-[#4338ca] px-4 py-1.5 h-8 shadow-xs"
-                              >
-                                {assignCourierMutation.isPending ? (
-                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                ) : (
-                                  "Ship Now"
-                                )}
-                              </Button>
+                              {(() => {
+                                const cIdStr = String(c.courier_company_id)
+                                const isThisLoading = assignCourierMutation.isPending && selectedCourierId === cIdStr
+                                return (
+                                  <Button
+                                    disabled={assignCourierMutation.isPending}
+                                    onClick={() => {
+                                      setSelectedCourierId(cIdStr)
+                                      assignCourierMutation.mutate({ courierId: cIdStr, courierName: name })
+                                    }}
+                                    className="text-xs font-bold bg-slate-900 text-white hover:bg-black px-4 py-1.5 h-8 shadow-2xs cursor-pointer"
+                                  >
+                                    {isThisLoading ? (
+                                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    ) : (
+                                      "Ship Now"
+                                    )}
+                                  </Button>
+                                )
+                              })()}
                             </div>
                           </div>
                         )

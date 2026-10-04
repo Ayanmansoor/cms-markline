@@ -6,18 +6,19 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import {
   ArrowLeft, CheckCircle2, Printer, Download, Package,
-  User, MapPin, Save, CalendarDays, Phone,
+  User, MapPin, Save, Phone,
   Clock, ShoppingBag, Truck, AlertCircle, CheckCheck,
-  XCircle, Copy, FileText, Tag,
-  Star, Receipt, Banknote, ShieldCheck, CalendarCheck2,
+  XCircle, Copy, FileText, Tag, AlertTriangle,
+  Receipt, ShieldCheck, CalendarCheck2,
   CircleDot, Hash, Mail, Home, ExternalLink, RotateCcw,
   ArrowUpRight, ArrowDownLeft, CreditCard, PackageCheck,
-  Loader2, RefreshCw
+  Loader2, RefreshCw, Lock, Sparkles, ChevronRight
 } from "lucide-react"
 import Link from "next/link"
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
@@ -34,10 +35,12 @@ import {
 const paymentStatusConfig: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
   PAID: { label: "Paid", color: "text-emerald-700", bg: "bg-emerald-50 border-emerald-200", icon: <ShieldCheck className="h-4 w-4 text-emerald-600" /> },
   PENDING: { label: "Pending", color: "text-amber-700", bg: "bg-amber-50 border-amber-200", icon: <Clock className="h-4 w-4 text-amber-500" /> },
+  NOT_PAID: { label: "Not Paid", color: "text-red-700", bg: "bg-red-50 border-red-200", icon: <AlertTriangle className="h-4 w-4 text-red-600" /> },
+  FAILED: { label: "Failed", color: "text-rose-700", bg: "bg-rose-50 border-rose-200", icon: <XCircle className="h-4 w-4 text-rose-600" /> },
 }
 
 const fulfillmentStatusConfig: Record<string, { label: string; dot: string }> = {
-  "Pending": { label: "Pending", dot: "bg-amber-400" },
+  "Pending": { label: "Pending Approval", dot: "bg-amber-400" },
   "Confirmed": { label: "Confirmed", dot: "bg-blue-500" },
   "Packed": { label: "Packed", dot: "bg-indigo-500" },
   "Ready To Ship": { label: "Ready To Ship", dot: "bg-violet-500" },
@@ -48,6 +51,7 @@ const fulfillmentStatusConfig: Record<string, { label: string; dot: string }> = 
 }
 
 const shipmentStatusColor: Record<string, string> = {
+  "Pending Creation": "bg-slate-100 text-slate-600 border-slate-200",
   "Pending": "bg-amber-100 text-amber-700 border-amber-200",
   "AWB Generated": "bg-blue-100 text-blue-700 border-blue-200",
   "Pickup Scheduled": "bg-violet-100 text-violet-700 border-violet-200",
@@ -73,9 +77,9 @@ const TimelineStep = ({
           ? <CircleDot className="h-3.5 w-3.5 text-indigo-500" />
           : <div className="h-2 w-2 rounded-full bg-slate-200" />}
     </div>
-    <div className="flex-1 pb-5 border-b border-slate-50 last:border-0">
-      <p className={`text-sm font-semibold ${done ? "text-slate-800" : current ? "text-indigo-700" : "text-slate-400"}`}>{title}</p>
-      <p className="text-[11px] font-medium text-slate-400 mt-0.5">{subtitle}</p>
+    <div className="flex-1 pb-4 border-b border-slate-50 last:border-0">
+      <p className={`text-xs font-semibold ${done ? "text-slate-800" : current ? "text-indigo-700" : "text-slate-400"}`}>{title}</p>
+      <p className="text-[10px] font-medium text-slate-400 mt-0.5">{subtitle}</p>
     </div>
   </div>
 )
@@ -92,7 +96,7 @@ const ShipmentCard = ({
   const statusCls = shipmentStatusColor[shipment.shipment_status] ?? "bg-slate-100 text-slate-600 border-slate-200"
 
   return (
-    <div className={`rounded-xl border p-4 space-y-3 ${isForward ? "bg-white border-blue-100" : "bg-white border-orange-100"}`}>
+    <div className={`rounded-xl border p-4 space-y-3 ${isForward ? "bg-white border-blue-100 shadow-xs" : "bg-white border-orange-100 shadow-xs"}`}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -122,13 +126,13 @@ const ShipmentCard = ({
       <div className="grid grid-cols-2 gap-2.5">
         {shipment.courier_name && (
           <div>
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Courier</p>
+            <p className="text-[9px] font-bold text-slate-400 capitalize tracking-wider">Courier</p>
             <p className="text-xs font-semibold text-slate-700 mt-0.5">{shipment.courier_name}</p>
           </div>
         )}
         {shipment.awb_code && (
           <div>
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">AWB Code</p>
+            <p className="text-[9px] font-bold text-slate-400 capitalize tracking-wider">AWB Code</p>
             <div className="flex items-center gap-1 mt-0.5">
               <p className="text-xs font-mono font-semibold text-slate-700 truncate">{shipment.awb_code}</p>
               <Copy
@@ -140,19 +144,19 @@ const ShipmentCard = ({
         )}
         {shipment.shiprocket_order_id && (
           <div>
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">SR Order ID</p>
+            <p className="text-[9px] font-bold text-slate-400 capitalize tracking-wider">SR Order ID</p>
             <p className="text-xs font-mono font-semibold text-slate-600 mt-0.5 truncate">{shipment.shiprocket_order_id}</p>
           </div>
         )}
         {shipment.pickup_status && (
           <div>
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Pickup</p>
+            <p className="text-[9px] font-bold text-slate-400 capitalize tracking-wider">Pickup</p>
             <p className="text-xs font-semibold text-slate-700 mt-0.5">{shipment.pickup_status}</p>
           </div>
         )}
         {(shipment.weight || shipment.length) && (
           <div>
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Dimensions</p>
+            <p className="text-[9px] font-bold text-slate-400 capitalize tracking-wider">Dimensions</p>
             <p className="text-xs font-semibold text-slate-700 mt-0.5">
               {shipment.weight ? `${shipment.weight}kg` : ''}{shipment.length ? ` · ${shipment.length}×${shipment.breadth}×${shipment.height}cm` : ''}
             </p>
@@ -160,7 +164,7 @@ const ShipmentCard = ({
         )}
         {shipment.pickup_scheduled_at && (
           <div>
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Pickup Scheduled</p>
+            <p className="text-[9px] font-bold text-slate-400 capitalize tracking-wider">Pickup Scheduled</p>
             <p className="text-xs font-semibold text-slate-700 mt-0.5">
               {new Date(shipment.pickup_scheduled_at).toLocaleString("en-IN", {
                 day: "numeric",
@@ -173,45 +177,46 @@ const ShipmentCard = ({
             </p>
           </div>
         )}
-        {shipment.created_at && (
-          <div>
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Created</p>
-            <p className="text-xs font-semibold text-slate-600 mt-0.5">
-              {new Date(shipment.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-            </p>
-          </div>
-        )}
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-2 pt-1">
-        {shipment.tracking_url && (
-          <a href={shipment.tracking_url} target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-1 text-[10px] font-bold text-blue-600 hover:text-blue-700">
-            <ExternalLink className="h-3 w-3" /> Track
-          </a>
-        )}
-        {shipment.shipping_label_url && (
-          <a href={shipment.shipping_label_url} target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-1 text-[10px] font-bold text-slate-600 hover:text-slate-700">
-            <Download className="h-3 w-3" /> Label
-          </a>
-        )}
-        {shipment.invoice_url && (
-          <a href={shipment.invoice_url} target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-1 text-[10px] font-bold text-slate-600 hover:text-slate-700">
-            <FileText className="h-3 w-3" /> Invoice
-          </a>
-        )}
-        {/* Show Schedule Return button on forward shipments if no reverse exists yet */}
-        {isForward && onScheduleReturn && (
-          <button
-            onClick={() => onScheduleReturn(shipment.id)}
-            className="ml-auto flex items-center gap-1 text-[10px] font-bold text-orange-600 hover:text-orange-700"
-          >
-            <RotateCcw className="h-3 w-3" /> Schedule Return
-          </button>
-        )}
+      {/* Actions Row */}
+      <div className="flex items-center gap-2 pt-2 border-t border-slate-100 flex-wrap">
+        <Link
+          href={`/shipments/${shipment.id}`}
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-lg transition-colors shadow-2xs"
+        >
+          <Truck className="h-3.5 w-3.5" />
+          Manage Shipment Details (#SHP-{shipment.id})
+          <ChevronRight className="h-3.5 w-3.5" />
+        </Link>
+        <div className="flex items-center gap-2 ml-auto">
+          {shipment.tracking_url && (
+            <a href={shipment.tracking_url} target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-1 text-[10px] font-bold text-blue-600 hover:text-blue-700">
+              <ExternalLink className="h-3 w-3" /> Track
+            </a>
+          )}
+          {shipment.shipping_label_url && (
+            <a href={shipment.shipping_label_url} target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-1 text-[10px] font-bold text-slate-600 hover:text-slate-700">
+              <Download className="h-3 w-3" /> Label
+            </a>
+          )}
+          {shipment.invoice_url && (
+            <a href={shipment.invoice_url} target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-1 text-[10px] font-bold text-slate-600 hover:text-slate-700">
+              <FileText className="h-3 w-3" /> Invoice
+            </a>
+          )}
+          {isForward && onScheduleReturn && (
+            <button
+              onClick={() => onScheduleReturn(shipment.id)}
+              className="flex items-center gap-1 text-[10px] font-bold text-orange-600 hover:text-orange-700"
+            >
+              <RotateCcw className="h-3 w-3" /> Return
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -222,6 +227,9 @@ export default function OrderDetailPage() {
   const params = useParams()
   const orderId = params.id as string
   const queryClient = useQueryClient()
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState<string>("order-details")
 
   // Order actions state
   const [adminNote, setAdminNote] = useState("")
@@ -237,6 +245,7 @@ export default function OrderDetailPage() {
   const [shipPickupDate, setShipPickupDate] = useState("")
   const [isReturnMode, setIsReturnMode] = useState(false)
   const [returnParentId, setReturnParentId] = useState<number | null>(null)
+  const [lastCreatedShipmentId, setLastCreatedShipmentId] = useState<number | null>(null)
 
   // ── Order fetch ───────────────────────────────────────────────────────────
   const { data: orderData, isLoading, error } = useQuery({
@@ -245,8 +254,12 @@ export default function OrderDetailPage() {
       const res = await fetch(`/api/orders/${orderId}`)
       if (!res.ok) throw new Error("Failed to fetch order details")
       return res.json()
-    }
+    },
+    enabled: !!orderId
   })
+
+  console.log("order detail ", orderData);
+
 
   // ── Shipments fetch ───────────────────────────────────────────────────────
   const { data: shipmentsData, isLoading: shipmentsLoading, refetch: refetchShipments } = useQuery({
@@ -258,25 +271,78 @@ export default function OrderDetailPage() {
     }
   })
 
+  // ── Derived order data (must come before Razorpay query) ────────────────
   const order = orderData?.order
+
+
   const shipments: any[] = shipmentsData?.shipments || []
+
+  // ── Razorpay Live Details fetch ──────────────────────────────────────────
+  const razorpayPaymentId = order?.razorpayPaymentId
+  const razorpayOrderId = order?.razorpayOrderId
+  const hasRazorpay = Boolean(
+    (razorpayPaymentId && razorpayPaymentId !== "N/A") ||
+    (razorpayOrderId && razorpayOrderId !== "N/A")
+  )
+  const { data: razorpayData, isLoading: razorpayLoading } = useQuery({
+    queryKey: ["order-razorpay", orderId],
+    queryFn: async () => {
+      const res = await fetch(`/api/orders/${orderId}/razorpay`)
+      if (!res.ok) throw new Error("Failed to fetch razorpay details")
+      return res.json()
+    },
+    enabled: hasRazorpay
+  })
+
+  console.log("razorpay", order?.razorpayPaymentId, "orderId", order?.razorpayOrderId, "orders", order)
+
   const forwardShipments = shipments.filter(s => s.shipment_type === 'Forward')
   const reverseShipments = shipments.filter(s => s.shipment_type === 'Reverse')
   const hasForward = forwardShipments.length > 0
   const hasReverse = reverseShipments.length > 0
 
-  React.useEffect(() => {
+  // Check if order is accepted/approved
+  const isApproved = order && order.fulfillmentStatus !== "Pending" && order.fulfillmentStatus !== "Cancelled"
+  const isCancelled = order?.fulfillmentStatus === "Cancelled"
+
+  // ── Payment & Order Mode Validation ──────────────────────────────────────
+  const orderMode = (order?.orderMode || "").toUpperCase() || (
+    (order?.paymentMethod?.toLowerCase() === 'cod' || order?.paymentMethod?.toLowerCase() === 'cash') ? 'CASH' : 'ONLINE'
+  )
+  const isOnlineOrder = orderMode === 'ONLINE'
+  const rawPaymentStatus = (order?.paymentStatus || 'PENDING').toUpperCase()
+
+  // If razorpay payment or order ID exists, or raw payment status is PAID, effective payment status is PAID
+  const effectivePaymentStatus = (hasRazorpay || rawPaymentStatus === 'PAID') ? 'PAID' : rawPaymentStatus
+
+  // An online order is incomplete ONLY if:
+  // 1. paymentStatus is explicitly NOT_PAID or FAILED, OR
+  // 2. It has NO payment ID/order ID (hasRazorpay is false) AND paymentStatus is not PAID
+  const isExplicitlyUnpaid = effectivePaymentStatus === 'NOT_PAID' || effectivePaymentStatus === 'FAILED'
+  const isMissingPaymentInfo = !hasRazorpay && effectivePaymentStatus !== 'PAID'
+  const isPaymentIncomplete = isOnlineOrder && (isExplicitlyUnpaid || isMissingPaymentInfo)
+
+  // Derive current shipment status
+  const currentShipmentStatusStr = forwardShipments[0]?.shipment_status || (hasForward ? "Created" : "Pending Creation")
+  const currentShipmentCls = shipmentStatusColor[currentShipmentStatusStr] ?? "bg-slate-100 text-slate-700 border-slate-200"
+
+  useEffect(() => {
     if (order) {
       setAdminNote(order.adminNote || "")
     }
   }, [order])
+
+  useEffect(() => {
+    if (error) {
+      toast.error(`Failed to load order: ${error.message || 'Unknown error'}. Please refresh the page.`)
+    }
+  }, [error])
 
   // ── Order update mutation ─────────────────────────────────────────────────
   const updateMutation = useMutation({
     mutationFn: async (payload: {
       paymentStatus?: string
       fulfillmentStatus?: string
-      returnStatus?: string
       adminNote?: string
       cancelReason?: string
     }) => {
@@ -288,10 +354,16 @@ export default function OrderDetailPage() {
       if (!res.ok) throw new Error("Failed to update order")
       return res.json()
     },
-    onSuccess: () => {
-      toast.success("Order updated!")
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["order", orderId] })
       queryClient.invalidateQueries({ queryKey: ["orders"] })
+
+      if (variables.fulfillmentStatus === "Confirmed") {
+        toast.success("Order approved! Tab 2 (Create Shipment) is now unlocked.")
+        setActiveTab("shipment")
+      } else {
+        toast.success("Order updated!")
+      }
     },
     onError: (err: any) => toast.error(err.message || "Failed to update order")
   })
@@ -318,7 +390,11 @@ export default function OrderDetailPage() {
       return data
     },
     onSuccess: (data) => {
-      if (data.warning) {
+      const createdId = data.shipment?.id
+      if (createdId) {
+        setLastCreatedShipmentId(createdId)
+        toast.success(`Shipment #SHP-${createdId} created! Manage pickup and courier details below.`)
+      } else if (data.warning) {
         toast.warning(data.warning)
       } else {
         toast.success(`${isReturnMode ? "Return" : "Forward"} shipment created with Shiprocket!`)
@@ -337,7 +413,7 @@ export default function OrderDetailPage() {
       return
     }
     if (!shipPickupDate) {
-      toast.error("Please select a pickup date")
+      toast.error("Please select a pickup date & time")
       return
     }
     createShipmentMutation.mutate({
@@ -355,8 +431,6 @@ export default function OrderDetailPage() {
   const handleStartReturn = (parentId: number) => {
     setIsReturnMode(true)
     setReturnParentId(parentId)
-    // scroll to schedule section
-    document.getElementById("schedule-section")?.scrollIntoView({ behavior: "smooth" })
   }
 
   const handleCancelReturn = () => {
@@ -364,14 +438,60 @@ export default function OrderDetailPage() {
     setReturnParentId(null)
   }
 
+  // ── Pre-handover Order Cancellation mutation ──────────────────────────────
+  const cancelOrderMutation = useMutation({
+    mutationFn: async (reason: string) => {
+      const res = await fetch(`/api/orders/${orderId}/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cancelReason: reason })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Failed to cancel order")
+      return data
+    },
+    onSuccess: (data) => {
+      toast.success(data.message || "Order and shipment successfully cancelled.")
+      setIsCancelOpen(false)
+      queryClient.invalidateQueries({ queryKey: ["order", orderId] })
+      queryClient.invalidateQueries({ queryKey: ["order-shipments", orderId] })
+      queryClient.invalidateQueries({ queryKey: ["orders"] })
+    },
+    onError: (err: any) => toast.error(err.message || "Failed to cancel order")
+  })
+
+  // ── Razorpay Refund mutation ──────────────────────────────────────────────
+  const refundMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/orders/${orderId}/refund`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Failed to process refund")
+      return data
+    },
+    onSuccess: (data) => {
+      toast.success(data.message || "Refund confirmed by Razorpay!")
+      queryClient.invalidateQueries({ queryKey: ["order", orderId] })
+      queryClient.invalidateQueries({ queryKey: ["orders"] })
+    },
+    onError: (err: any) => toast.error(err.message || "Refund initiation failed")
+  })
+
   const handleApproveOrder = () => updateMutation.mutate({ paymentStatus: "PAID", fulfillmentStatus: "Confirmed" })
   const handleRejectOrder = () => setIsCancelOpen(true)
-  const handleFulfillmentChange = (val: string) => updateMutation.mutate({ fulfillmentStatus: val })
-  const handleReturnStatusChange = (val: string) => updateMutation.mutate({ returnStatus: val })
   const handleSaveNote = () => updateMutation.mutate({ adminNote })
   const handleCancelOrder = () => {
-    updateMutation.mutate({ fulfillmentStatus: "Cancelled", cancelReason: cancelReason || "Cancelled by admin" })
-    setIsCancelOpen(false)
+    cancelOrderMutation.mutate(cancelReason || "Cancelled by admin")
+  }
+
+  const handleTabChange = (val: string) => {
+    if (val === "shipment" && !isApproved) {
+      toast.error("Please approve the order first in Tab 1 before accessing Shipment!")
+      return
+    }
+    setActiveTab(val)
   }
 
   const formatCurrency = (val: number) =>
@@ -383,68 +503,22 @@ export default function OrderDetailPage() {
   const ffSteps = ["Pending", "Confirmed", "Packed", "Ready To Ship", "Shipped", "Delivered", "Completed"]
   const currentStep = order ? ffSteps.indexOf(order.fulfillmentStatus) : -1
 
-  // Whether to show the schedule shipment form:
-  // Forward: only when fulfillment is Confirmed (order approved) AND no forward shipment yet
-  // Return: whenever admin clicks Schedule Return
-  const showForwardSchedule = order?.fulfillmentStatus === "Confirmed" && !hasForward && !isReturnMode
-  const showReturnSchedule = isReturnMode
-
   return (
     <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className="bg-[#f4f7fb] min-h-screen">
+      <AppSidebar variant="inset" />
+      <SidebarInset className="bg-white flex flex-col h-screen overflow-hidden">
         <SiteHeader />
 
-        <div className="flex flex-1 flex-col">
+        <div className="flex flex-1 flex-col overflow-y-auto min-w-0">
 
-          {/* ── Top Header ──────────────────────────────────────────────────── */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white flex-wrap gap-3 sticky top-0 z-20">
-            <div className="flex items-center gap-3">
-              <Link href="/orders">
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-slate-900 rounded-full">
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-              </Link>
-              <div>
-                <h1 className="text-lg font-bold text-slate-900 leading-none">
-                  {order?.displayId || `#ORD-${orderId?.slice(0, 8).toUpperCase()}`}
-                </h1>
-                <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-                  {order?.created_at ? new Date(order.created_at).toLocaleString("en-IN", {
-                    day: "numeric", month: "short", year: "numeric",
-                    hour: "numeric", minute: "2-digit", hour12: true
-                  }) : "—"}
-                </p>
-              </div>
-              {ps && (
-                <span className={`hidden sm:inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border ${ps.bg} ${ps.color}`}>
-                  {ps.icon}{ps.label}
-                </span>
-              )}
-              {ff && (
-                <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border border-slate-200 bg-white text-slate-700">
-                  <span className={`h-1.5 w-1.5 rounded-full ${ff.dot}`} />
-                  {ff.label}
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" className="text-xs font-semibold text-slate-600 border-slate-200 h-8 gap-1.5">
-                <Printer className="h-3.5 w-3.5" /> Print
-              </Button>
-              <Button variant="outline" className="text-xs font-semibold text-slate-600 border-slate-200 h-8 gap-1.5">
-                <Download className="h-3.5 w-3.5" /> PDF
-              </Button>
-            </div>
-          </div>
+          {/* ── Page Container ───────────────────────────────────────────────── */}
+          <div className="flex-1 p-6 max-w-7xl w-full mx-auto space-y-3">
 
-          {/* ── Page Content ─────────────────────────────────────────────────── */}
-          <div className="flex-1 p-5 overflow-y-auto">
             {isLoading ? (
               <div className="flex items-center justify-center py-32">
                 <div className="flex flex-col items-center gap-3">
-                  <div className="h-10 w-10 rounded-full border-4 border-indigo-200 border-t-indigo-600 animate-spin" />
-                  <p className="text-sm font-semibold text-slate-400">Loading order…</p>
+                  <div className="h-10 w-10 rounded-full border-4 border-slate-200 border-t-slate-900 animate-spin" />
+                  <p className="text-sm font-semibold text-slate-500">Loading order details…</p>
                 </div>
               </div>
             ) : error || !order ? (
@@ -456,677 +530,950 @@ export default function OrderDetailPage() {
                 </div>
               </div>
             ) : (
-              <div className="max-w-7xl mx-auto grid gap-5 lg:grid-cols-3">
+              <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full space-y-6">
 
-                {/* ════════════════════════════════════
-                    LEFT COLUMN
-                    ════════════════════════════════════ */}
-                <div className="lg:col-span-2 space-y-5">
+                {/* ── 2-Step Workflow Shadcn Tabs Bar ──────────────────────── */}
+                <div className="bg-white p-2.5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between flex-wrap gap-3">
+                  <TabsList className="bg-slate-100/80 p-1 rounded-xl h-auto gap-1 border border-slate-200/80">
 
-                  {/* Cancelled Banner */}
-                  {order.fulfillmentStatus === "Cancelled" && (
-                    <div className="flex items-start gap-3 p-4 rounded-xl bg-red-50 border border-red-200">
-                      <XCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-sm font-bold text-red-700">Order Cancelled</p>
-                        <p className="text-xs text-red-500 mt-0.5">{order.cancelReason || "No reason provided"}</p>
+                    {/* Tab 1: Order Details & Approval */}
+                    <TabsTrigger
+                      value="order-details"
+                      className="px-4 py-2 rounded-lg text-xs font-bold gap-2 transition-all text-slate-600 hover:text-slate-900 data-[state=active]:bg-slate-900 data-[state=active]:!text-white data-[state=active]:shadow-xs cursor-pointer"
+                    >
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-200 text-slate-700 text-[10px] font-black">
+                        1
+                      </span>
+                      <ShoppingBag className="h-3.5 w-3.5" />
+                      Order Details & Approval
+                      {isApproved && (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 ml-1" />
+                      )}
+                    </TabsTrigger>
+
+                    {/* Tab 2: Create Shipment (Locked until order accepted) */}
+                    <TabsTrigger
+                      value="shipment"
+                      disabled={!isApproved}
+                      className="px-4 py-2 rounded-lg text-xs font-bold gap-2 transition-all text-slate-600 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed data-[state=active]:bg-slate-900 data-[state=active]:!text-white data-[state=active]:shadow-xs cursor-pointer"
+                    >
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-200 text-slate-700 text-[10px] font-black">
+                        2
+                      </span>
+                      <Truck className="h-3.5 w-3.5" />
+                      Create Shipment
+                      {!isApproved ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 ml-1">
+                          <Lock className="h-3 w-3" /> Locked
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 ml-1">
+                          Ready
+                        </span>
+                      )}
+                    </TabsTrigger>
+                  </TabsList>
+
+                  {/* Quick Order Approval Action Banner in Header */}
+                  {isCancelled ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-red-700 bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                        <XCircle className="h-4 w-4 text-red-600" />
+                        Order Cancelled
+                      </span>
+                    </div>
+                  ) : isPaymentIncomplete ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-red-700 bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                        <AlertTriangle className="h-4 w-4 text-red-600" />
+                        Payment Not Completed
+                      </span>
+                      <Button
+                        onClick={handleRejectOrder}
+                        variant="outline"
+                        className="h-9 px-4 text-xs font-bold text-red-600 border-red-200 bg-red-50 hover:bg-red-100 gap-1.5 cursor-pointer"
+                      >
+                        <XCircle className="h-3.5 w-3.5" /> Reject Order
+                      </Button>
+                    </div>
+                  ) : !isApproved ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                        <Clock className="h-3.5 w-3.5 text-amber-500 animate-pulse" />
+                        Order Needs Approval
+                      </span>
+                      <Button
+                        onClick={handleRejectOrder}
+                        variant="outline"
+                        className="h-9 px-4 text-xs font-bold text-red-600 border-red-200 bg-red-50 hover:bg-red-100 gap-1.5 cursor-pointer"
+                      >
+                        <XCircle className="h-3.5 w-3.5" /> Reject Order
+                      </Button>
+                      <Button
+                        onClick={handleApproveOrder}
+                        disabled={updateMutation.isPending}
+                        className="h-9 px-4 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs gap-1.5"
+                      >
+                        {updateMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                        Approve Order
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                        Order Approved
+                      </span>
+                      <Button
+                        onClick={handleRejectOrder}
+                        variant="outline"
+                        className="h-9 px-4 text-xs font-bold text-red-600 border-red-200 bg-red-50 hover:bg-red-100 gap-1.5 cursor-pointer"
+                      >
+                        <XCircle className="h-3.5 w-3.5" /> Cancel Order
+                      </Button>
+                      <Button
+                        onClick={() => setActiveTab("shipment")}
+                        variant="outline"
+                        className="h-9 px-4 text-xs font-bold text-emerald-700 border-emerald-300 bg-emerald-50 hover:bg-emerald-100 shadow-xs gap-1.5"
+                      >
+                        Proceed to Create Shipment <ChevronRight className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {/* ═════════════════════════════════════════════════════════════
+                    TAB 1: ORDER DETAILS, PRODUCTS, CUSTOMER & PAYMENT
+                    ═════════════════════════════════════════════════════════════ */}
+                <TabsContent value="order-details" className="space-y-6 mt-0">
+
+                  {/* Payment Incomplete Warning Banner */}
+                  {!isCancelled && isPaymentIncomplete && (
+                    <div className="flex items-center justify-between gap-4 p-5 rounded-2xl bg-red-50 border border-red-200 shadow-xs flex-wrap">
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle className="h-6 w-6 text-red-500 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-bold text-red-700">Order Payment Not Completed ({rawPaymentStatus})</p>
+                          <p className="text-xs text-red-600 mt-0.5">
+                            This online order has not been paid. Payment verification is required before order approval.
+                          </p>
+                        </div>
                       </div>
+                      <span className="text-xs font-bold text-red-700 bg-red-100 border border-red-200 px-3.5 py-1.5 rounded-xl">
+                        Approval Disabled
+                      </span>
                     </div>
                   )}
 
-                  {/* ── Products ─────────────────────────────────────── */}
-                  <Card className="border border-slate-200 shadow-sm bg-white overflow-hidden">
-                    <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50/60">
-                      <div className="flex items-center gap-2">
-                        <ShoppingBag className="h-4 w-4 text-slate-400" />
-                        <h2 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Products Ordered</h2>
-                        <span className="h-5 w-5 rounded-full bg-slate-200 text-[10px] font-bold text-slate-600 flex items-center justify-center">
-                          {order.products?.length || 0}
-                        </span>
-                      </div>
-                    </div>
-                    <CardContent className="p-0">
-                      <div className="divide-y divide-slate-50">
-                        {order.products?.map((item: any, idx: number) => (
-                          <div key={item.id ?? idx} className="flex gap-4 p-5 hover:bg-slate-50/50 transition-colors">
-                            {/* Product image — larger */}
-                            <div className="h-24 w-24 rounded-xl border border-slate-200 bg-slate-100 flex-shrink-0 overflow-hidden flex items-center justify-center shadow-sm">
-                              {item.imageUrl
-                                ? <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
-                                : <Package className="h-8 w-8 text-slate-300" />}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              {/* Name + price row */}
-                              <div className="flex items-start justify-between gap-2 mb-2">
-                                <div className="flex-1 min-w-0">
-                                  <h3 className="text-sm font-bold text-slate-900 leading-tight">{item.name}</h3>
-                                  {item.slug && (
-                                    <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">{item.slug}</p>
-                                  )}
-                                </div>
-                                <div className="text-right flex-shrink-0">
-                                  <p className="text-base font-black text-indigo-700">{formatCurrency(item.finalPrice * item.quantity)}</p>
-                                  <p className="text-[10px] text-slate-400 font-medium">
-                                    {formatCurrency(item.finalPrice)} × {item.quantity}
-                                  </p>
-                                  {item.discountAmount > 0 && (
-                                    <p className="text-[10px] font-medium text-slate-400 line-through">{formatCurrency(item.unitPrice)}</p>
-                                  )}
-                                </div>
-                              </div>
-                              {/* Attributes row */}
-                              <div className="flex flex-wrap items-center gap-2">
-                                {item.color && (
-                                  <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-slate-600 bg-slate-100 border border-slate-200 px-2 py-1 rounded-full">
-                                    <span className="h-2.5 w-2.5 rounded-full border border-slate-300" style={{ backgroundColor: item.color.toLowerCase() }} />
-                                    {item.color}
-                                  </span>
-                                )}
-                                {item.size && (
-                                  <span className="text-[10px] font-semibold text-slate-600 bg-slate-100 border border-slate-200 px-2 py-1 rounded-full">
-                                    Size: {item.size}
-                                  </span>
-                                )}
-                                <span className="text-[10px] font-mono font-semibold text-slate-400 bg-slate-50 border border-slate-200 px-2 py-1 rounded-full">
-                                  SKU: {item.sku}
-                                </span>
-                                <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-1 rounded-full">
-                                  Qty: {item.quantity}
-                                </span>
-                              </div>
-                            </div>
+                  {/* Approval Banner Prompt */}
+                  {isCancelled && (
+                    <div className="flex items-center justify-between gap-4 p-5 rounded-2xl bg-red-50 border border-red-200 shadow-xs flex-wrap">
+                      <div className="flex items-start gap-3">
+                        <XCircle className="h-6 w-6 text-red-500 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-bold text-red-700">Order Cancelled</p>
+                          <p className="text-xs text-red-500 mt-0.5">Reason: {order.cancelReason || "Pre-handover order cancellation"}</p>
+                          <div className="flex items-center gap-3 mt-2 text-[11px] font-semibold text-slate-600 flex-wrap">
+                            <span>Mode: <strong className={isOnlineOrder ? "text-indigo-700 font-bold" : "text-emerald-700 font-bold"}>{orderMode}</strong></span>
+                            <span>Payment: <strong className={effectivePaymentStatus === 'PAID' ? "text-emerald-700 font-bold" : "text-amber-700 font-bold"}>{effectivePaymentStatus}</strong></span>
+                            <span>Return: <strong className="text-slate-900">{order.returnStatus || "None"}</strong></span>
+                            <span>Refund: <strong className="text-slate-900">{order.refundStatus || (effectivePaymentStatus === 'PAID' && isOnlineOrder ? "PENDING" : "None")}</strong></span>
                           </div>
-                        ))}
+                        </div>
                       </div>
 
-                      {/* Totals */}
-                      <div className="border-t border-slate-100 bg-slate-50/70 px-5 py-4 space-y-1.5">
-                        <div className="flex justify-between text-xs font-medium text-slate-500">
-                          <span>Subtotal</span>
-                          <span className="font-semibold text-slate-700">{formatCurrency(order.financials.subtotal)}</span>
-                        </div>
-                        <div className="flex justify-between text-xs font-medium text-slate-500">
-                          <span>Shipping</span>
-                          <span className="font-semibold text-slate-700">{formatCurrency(order.financials.shipping)}</span>
-                        </div>
-                        <div className="flex justify-between text-xs font-medium text-slate-500">
-                          <span>Tax (GST)</span>
-                          <span className="font-semibold text-slate-700">{formatCurrency(order.financials.tax)}</span>
-                        </div>
-                        {order.financials.discount > 0 && (
-                          <div className="flex justify-between text-xs font-medium text-slate-500">
-                            <span className="flex items-center gap-1">
-                              <Tag className="h-3 w-3" />
-                              {order.couponCode && <span className="font-mono text-emerald-600">({order.couponCode})</span>}
+                      {/* Refund Action Section */}
+                      {isOnlineOrder && hasRazorpay ? (
+                        <div>
+                          {order.refundStatus === "REFUNDED" ? (
+                            <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-100 text-emerald-800 font-bold text-xs border border-emerald-200">
+                              <ShieldCheck className="h-4 w-4 text-emerald-600" /> Refund Processed
                             </span>
-                            <span className="font-bold text-emerald-600">−{formatCurrency(order.financials.discount)}</span>
-                          </div>
-                        )}
-                        <div className="flex justify-between text-sm font-black text-slate-900 pt-2 border-t border-slate-200">
-                          <span>Grand Total</span>
-                          <span className="text-indigo-700 text-base">{formatCurrency(order.financials.total)}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* ── Customer & Shipping ───────────────────────────── */}
-                  <Card className="border border-slate-200 shadow-sm bg-white overflow-hidden">
-                    <div className="flex items-center gap-2 px-5 py-3.5 border-b border-slate-100 bg-slate-50/60">
-                      <User className="h-4 w-4 text-slate-400" />
-                      <h2 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Customer & Delivery Details</h2>
-                    </div>
-                    <CardContent className="p-5">
-                      <div className="grid sm:grid-cols-2 gap-6">
-                        {/* Who Ordered */}
-                        <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Who Ordered</p>
-                          <div className="flex items-center gap-3 mb-3">
-                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                              {order.customerName?.charAt(0)?.toUpperCase() || "?"}
-                            </div>
-                            <div>
-                              <p className="text-sm font-bold text-slate-900">{order.customerName || "Guest"}</p>
-                              <p className="text-xs text-slate-400 font-medium">{order.customerEmail}</p>
-                            </div>
-                          </div>
-                          <div className="space-y-2 pl-1">
-                            <div className="flex items-center gap-2 text-xs text-slate-500">
-                              <Hash className="h-3 w-3 text-slate-300" />
-                              <span className="font-mono text-slate-400 text-[10px]">{order.userId?.slice(0, 8)}…</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-xs text-slate-500">
-                              <Mail className="h-3 w-3 text-slate-300" />
-                              <span>{order.customerEmail}</span>
-                            </div>
-                          </div>
-                          {order.customerNote && (
-                            <div className="mt-3 p-3 bg-amber-50 border border-amber-100 rounded-lg">
-                              <p className="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-1">Customer Note</p>
-                              <p className="text-xs italic text-amber-800">"{order.customerNote}"</p>
-                            </div>
+                          ) : order.refundStatus === "PROCESSING" || refundMutation.isPending ? (
+                            <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-100 text-blue-800 font-bold text-xs border border-blue-200">
+                              <Loader2 className="h-4 w-4 animate-spin text-blue-600" /> Processing Refund…
+                            </span>
+                          ) : (
+                            <Button
+                              onClick={() => refundMutation.mutate()}
+                              disabled={refundMutation.isPending}
+                              variant="outline"
+                              className="h-9 px-4 text-xs font-bold text-emerald-700 bg-emerald-50 border-emerald-300 hover:bg-emerald-100 gap-1.5 shadow-xs whitespace-nowrap cursor-pointer"
+                            >
+                              {refundMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                              {order.refundStatus === "FAILED" ? "Retry Refund" : "Start Refund"}
+                            </Button>
                           )}
                         </div>
+                      ) : isOnlineOrder ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 font-semibold text-xs border border-slate-200">
+                          No Online Refund Required
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 font-semibold text-xs border border-slate-200">
+                          Cash on Delivery (No Gateway Refund)
+                        </span>
+                      )}
+                    </div>
+                  )}
 
-                        {/* Where It's Going */}
-                        <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Where It's Going</p>
-                          {order.shippingAddress ? (
-                            <div className="space-y-2.5">
-                              <div className="flex items-start gap-2">
-                                <User className="h-3.5 w-3.5 text-slate-300 mt-0.5 flex-shrink-0" />
-                                <p className="text-sm font-bold text-slate-800">{order.shippingAddress.recipientName}</p>
-                              </div>
-                              <div className="flex items-start gap-2">
-                                <Home className="h-3.5 w-3.5 text-slate-300 mt-0.5 flex-shrink-0" />
-                                <div>
-                                  <p className="text-xs font-medium text-slate-600">{order.shippingAddress.fullAddress}</p>
-                                  <p className="text-xs font-medium text-slate-600">
-                                    {order.shippingAddress.city}, {order.shippingAddress.state}
-                                  </p>
-                                  <p className="text-xs font-bold text-slate-700">PIN: {order.shippingAddress.pinCode}</p>
-                                  {order.shippingAddress.landmark && (
-                                    <p className="text-[10px] italic text-slate-400 mt-0.5">Near: {order.shippingAddress.landmark}</p>
-                                  )}
+                  <div className="grid gap-6 lg:grid-cols-3">
+
+                    {/* Left Column (Products & Customer) */}
+                    <div className="lg:col-span-2 space-y-6">
+
+
+
+                      {/* ── Product Details Card ──────────────────────── */}
+                      <Card className="border border-slate-200/80 shadow-2xs bg-white overflow-hidden rounded-2xl">
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/60">
+                          <div className="flex items-center gap-2">
+                            <ShoppingBag className="h-4 w-4 text-slate-700" />
+                            <h2 className="text-xs font-bold text-slate-800 capitalize tracking-wider">Product Details</h2>
+                            <span className="h-5 w-5 rounded-full bg-slate-200 text-[10px] font-bold text-slate-700 flex items-center justify-center">
+                              {order.products?.length || 0}
+                            </span>
+                          </div>
+                        </div>
+                        <CardContent className="p-0">
+                          <div className="divide-y divide-slate-100">
+                            {order.products?.map((item: any, idx: number) => (
+                              <div key={item.id ?? idx} className="flex gap-4 p-5 hover:bg-slate-50/40 transition-colors">
+                                <div className="h-20 w-20 rounded-xl border border-slate-200 bg-slate-100 flex-shrink-0 overflow-hidden flex items-center justify-center shadow-xs">
+                                  {item.imageUrl
+                                    ? <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
+                                    : <Package className="h-8 w-8 text-slate-300" />}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start justify-between gap-2 mb-1.5">
+                                    <div className="flex-1 min-w-0">
+                                      <h3 className="text-xs font-bold text-slate-900 leading-tight">{item.name}</h3>
+                                      {item.slug && (
+                                        <p className="text-xs text-slate-400 font-medium mt-0.5 truncate">{item.slug}</p>
+                                      )}
+                                    </div>
+                                    <div className="text-right flex-shrink-0">
+                                      <p className="text-lg font-black text-slate-900">{formatCurrency(item.finalPrice)}</p>
+                                      <p className="text-xs text-slate-400 font-medium">
+                                        {formatCurrency(item.unitPrice)} × {item.quantity}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                                    {item.color && (
+                                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full">
+                                        {(() => {
+                                          let colorStr = item.color
+                                          let hexColor = null
+                                          if (typeof colorStr === 'string' && colorStr.startsWith('{')) {
+                                            try {
+                                              const parsed = JSON.parse(colorStr)
+                                              colorStr = parsed.name || colorStr
+                                              hexColor = parsed.hex
+                                            } catch (e) { }
+                                          }
+                                          return (
+                                            <>
+                                              {hexColor && <span className="h-2 w-2 rounded-full border border-slate-300" style={{ backgroundColor: hexColor }} />}
+                                              {colorStr}
+                                            </>
+                                          )
+                                        })()}
+                                      </span>
+                                    )}
+                                    {item.size && (
+                                      <span className="text-[10px] font-semibold text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full">
+                                        Size: {(() => {
+                                          let sizeStr = item.size
+                                          if (typeof sizeStr === 'string' && sizeStr.startsWith('{')) {
+                                            try {
+                                              const parsed = JSON.parse(sizeStr)
+                                              sizeStr = parsed.size || sizeStr
+                                            } catch (e) { }
+                                          }
+                                          return sizeStr
+                                        })()}
+                                      </span>
+                                    )}
+                                    <span className="text-[10px] font-mono font-semibold text-slate-400 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-full">
+                                      SKU: {item.sku}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-2 pt-1.5 border-t border-slate-100">
-                                <Phone className="h-3.5 w-3.5 text-slate-300" />
-                                <p className="text-xs font-bold text-slate-700">{order.shippingAddress.recipientPhone}</p>
+                            ))}
+                          </div>
+
+                          {/* Order Financial Totals Summary */}
+                          <div className="border-t border-slate-200/80 bg-slate-50/80 px-5 py-4 space-y-2">
+                            <div className="flex justify-between text-xs font-medium text-slate-500">
+                              <span>Subtotal</span>
+                              <span className="font-semibold text-slate-800">{formatCurrency(order.financials.subtotal)}</span>
+                            </div>
+                            <div className="flex justify-between text-xs font-medium text-slate-500">
+                              <span>Shipping Charges</span>
+                              <span className="font-semibold text-slate-800">{formatCurrency(order.financials.shipping)}</span>
+                            </div>
+                            <div className="flex justify-between text-xs font-medium text-slate-500">
+                              <span>Tax Amount (GST)</span>
+                              <span className="font-semibold text-slate-800">{formatCurrency(order.financials.tax)}</span>
+                            </div>
+                            {order.financials.discount > 0 && (
+                              <div className="flex justify-between text-xs font-medium text-slate-500">
+                                <span className="flex items-center gap-1 text-slate-700 font-semibold">
+                                  <Tag className="h-3 w-3" /> Discount {order.couponCode && `(${order.couponCode})`}
+                                </span>
+                                <span className="font-bold text-slate-900">−{formatCurrency(order.financials.discount)}</span>
+                              </div>
+                            )}
+                            <div className="flex justify-between text-sm font-black text-slate-900 pt-2 border-t border-slate-200">
+                              <span>Grand Total</span>
+                              <span className="text-slate-900 text-base">{formatCurrency(order.financials.total)}</span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* ── Customer Details & Shipping Address ──────── */}
+                      <Card className="border border-slate-200/80 shadow-2xs bg-white overflow-hidden rounded-2xl">
+                        <div className="flex items-center gap-2 px-5 py-4 border-b border-slate-100 bg-slate-50/60">
+                          <User className="h-4 w-4 text-slate-700" />
+                          <h2 className="text-xs font-bold text-slate-800 capitalize tracking-wider">Customer & Delivery Details</h2>
+                        </div>
+                        <CardContent className="p-5">
+                          <div className="grid sm:grid-cols-2 gap-6">
+
+                            {/* Customer Profile */}
+                            <div>
+                              <p className="text-[10px] font-bold text-slate-400 capitalize tracking-wider mb-3">Customer Information</p>
+                              <div className="flex items-center gap-3 mb-3">
+                                <div className="h-10 w-10 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-xs">
+                                  {order.customerName?.charAt(0)?.toUpperCase() || "?"}
+                                </div>
+                                <div>
+                                  <p className="text-sm font-bold text-slate-900">{order.customerName || "Guest Customer"}</p>
+                                  <p className="text-xs text-slate-400 font-medium">{order.customerEmail}</p>
+                                </div>
+                              </div>
+                              <div className="space-y-1.5 text-xs text-slate-500 pl-1">
+                                <div className="flex items-center gap-2">
+                                  <Mail className="h-3.5 w-3.5 text-slate-400" />
+                                  <span>{order.customerEmail}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Hash className="h-3.5 w-3.5 text-slate-400" />
+                                  <span className="font-mono text-slate-400 text-[10px]">User ID: {order.userId?.slice(0, 10)}…</span>
+                                </div>
+                              </div>
+                              {order.customerNote && (
+                                <div className="mt-3 p-3 bg-amber-50 border border-amber-100 rounded-xl">
+                                  <p className="text-[10px] font-bold text-amber-600 capitalize tracking-wider mb-0.5">Customer Note</p>
+                                  <p className="text-xs italic text-amber-900">"{order.customerNote}"</p>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Shipping Address */}
+                            <div>
+                              <p className="text-[10px] font-bold text-slate-400 capitalize tracking-wider mb-3">Shipping Address</p>
+                              {order.shippingAddress ? (
+                                <div className="space-y-2">
+                                  <div className="flex items-start gap-2">
+                                    <User className="h-3.5 w-3.5 text-slate-400 mt-0.5 flex-shrink-0" />
+                                    <p className="text-xs font-bold text-slate-800">{order.shippingAddress.recipientName}</p>
+                                  </div>
+                                  <div className="flex items-start gap-2">
+                                    <Home className="h-3.5 w-3.5 text-slate-400 mt-0.5 flex-shrink-0" />
+                                    <div>
+                                      <p className="text-xs font-medium text-slate-700">{order.shippingAddress.fullAddress}</p>
+                                      <p className="text-xs font-medium text-slate-700">
+                                        {order.shippingAddress.city}, {order.shippingAddress.state}
+                                      </p>
+                                      <p className="text-xs font-bold text-slate-900 mt-0.5">PIN: {order.shippingAddress.pinCode}</p>
+                                      {order.shippingAddress.landmark && (
+                                        <p className="text-[10px] italic text-slate-400 mt-0.5">Landmark: {order.shippingAddress.landmark}</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                                    <Phone className="h-3.5 w-3.5 text-slate-400" />
+                                    <p className="text-xs font-bold text-slate-800">{order.shippingAddress.recipientPhone}</p>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2 text-xs text-slate-400">
+                                  <MapPin className="h-4 w-4" /> No shipping address provided
+                                </div>
+                              )}
+                            </div>
+
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                    </div>
+
+                    {/* Right Column (Payment Details & Admin Notes) */}
+                    <div className="space-y-6">
+
+                      {/* ── Payment Details Card ──────────────────────── */}
+                      <Card className="border border-slate-200/80 shadow-2xs bg-white overflow-hidden rounded-2xl">
+                        <div className="flex items-center gap-2 px-5 py-4 border-b border-slate-100 bg-slate-50/60">
+                          <Receipt className="h-4 w-4 text-slate-700" />
+                          <h2 className="text-xs font-bold text-slate-800 capitalize tracking-wider">Payment Details</h2>
+                        </div>
+                        <CardContent className="p-5 space-y-4">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                              <div className="flex items-center gap-2.5">
+                                <CreditCard className="h-4 w-4 text-slate-500" />
+                                <div>
+                                  <p className="text-[9px] font-bold text-slate-400 capitalize tracking-wider">Payment Method</p>
+                                  <p className="text-xs font-bold text-slate-800">{order.paymentMethod || "Razorpay Online"}</p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-[9px] font-bold text-slate-400 capitalize tracking-wider">Order Mode</p>
+                                <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${isOnlineOrder ? "bg-indigo-50 text-indigo-700 border-indigo-200" : "bg-emerald-50 text-emerald-700 border-emerald-200"}`}>
+                                  {orderMode}
+                                </span>
                               </div>
                             </div>
-                          ) : (
-                            <div className="flex items-center gap-2 text-xs text-slate-400">
-                              <MapPin className="h-4 w-4" /> No address on file
+                            {order.razorpayPaymentId && order.razorpayPaymentId !== "N/A" && (
+                              <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                <Hash className="h-4 w-4 text-slate-400" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-[9px] font-bold text-slate-400 capitalize tracking-wider">Razorpay Payment ID</p>
+                                  <p className="text-[10px] font-mono font-bold text-slate-700 truncate">{order.razorpayPaymentId}</p>
+                                </div>
+                                <Copy className="h-3.5 w-3.5 text-slate-300 cursor-pointer hover:text-slate-600 flex-shrink-0"
+                                  onClick={() => { navigator.clipboard.writeText(order.razorpayPaymentId); toast.success("Copied!") }} />
+                              </div>
+                            )}
+                            {order.couponCode && (
+                              <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                                <Tag className="h-4 w-4 text-slate-700" />
+                                <div>
+                                  <p className="text-[9px] font-bold text-slate-400 capitalize tracking-wider">Applied Coupon</p>
+                                  <p className="text-xs font-bold text-slate-800 font-mono">{order.couponCode}</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Highlighted Amount */}
+                          <div className="p-4 rounded-xl bg-slate-900 text-white shadow-xs">
+                            <p className="text-[10px] font-bold capitalize tracking-wider opacity-80 mb-1">Total Paid / Payable</p>
+                            <p className="text-2xl font-black">{formatCurrency(order.financials.total)}</p>
+                            <div className="mt-1.5 text-xs font-bold">
+                              {isCancelled ? (
+                                order.refundStatus === "REFUNDED" ? (
+                                  <p className="text-emerald-300 flex items-center gap-1.5">
+                                    <ShieldCheck className="h-4 w-4 text-emerald-400" /> Order Cancelled · Refund Processed
+                                  </p>
+                                ) : order.refundStatus === "PROCESSING" ? (
+                                  <p className="text-blue-300 flex items-center gap-1.5">
+                                    <Loader2 className="h-4 w-4 animate-spin text-blue-400" /> Order Cancelled · Refund Processing
+                                  </p>
+                                ) : effectivePaymentStatus === "PAID" || hasRazorpay ? (
+                                  <p className="text-amber-300 flex items-center gap-1.5">
+                                    <Clock className="h-4 w-4 text-amber-400" /> Payment Received · Refund Pending
+                                  </p>
+                                ) : (
+                                  <p className="text-slate-400 flex items-center gap-1.5">
+                                    <XCircle className="h-4 w-4 text-slate-400" /> Order Cancelled (Unpaid)
+                                  </p>
+                                )
+                              ) : (
+                                effectivePaymentStatus === "PAID" ? (
+                                  <p className="text-slate-200 flex items-center gap-1.5">
+                                    <ShieldCheck className="h-4 w-4 text-emerald-400" /> Payment Confirmed & Received
+                                  </p>
+                                ) : (
+                                  <p className="text-amber-200 flex items-center gap-1.5">
+                                    <Clock className="h-4 w-4 text-amber-400" /> Awaiting Customer Payment
+                                  </p>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* ── Razorpay Live Details Card ──────────────────────── */}
+                      {hasRazorpay && (
+                        <Card className="border border-indigo-200/80 shadow-2xs bg-white overflow-hidden rounded-2xl relative">
+                          {razorpayLoading && (
+                            <div className="absolute inset-0 z-10 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center gap-2">
+                              <Loader2 className="h-6 w-6 text-indigo-500 animate-spin" />
+                              <p className="text-[10px] font-bold text-slate-500">Syncing Gateway Data...</p>
                             </div>
                           )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* ── Shipments Section ─────────────────────────────── */}
-                  <Card className="border border-slate-200 shadow-sm bg-white overflow-hidden">
-                    <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50/60">
-                      <div className="flex items-center gap-2">
-                        <Truck className="h-4 w-4 text-slate-400" />
-                        <h2 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Shipments</h2>
-                        {shipments.length > 0 && (
-                          <span className="h-5 w-5 rounded-full bg-slate-200 text-[10px] font-bold text-slate-600 flex items-center justify-center">
-                            {shipments.length}
-                          </span>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => refetchShipments()}
-                        className="text-slate-400 hover:text-slate-600 transition-colors"
-                        title="Refresh shipments"
-                      >
-                        <RefreshCw className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                    <CardContent className="p-5 space-y-4">
-
-                      {/* Loading */}
-                      {shipmentsLoading && (
-                        <div className="flex items-center gap-2 text-xs text-slate-400 py-4">
-                          <Loader2 className="h-4 w-4 animate-spin" /> Loading shipments…
-                        </div>
-                      )}
-
-                      {/* No shipments — pending order */}
-                      {!shipmentsLoading && forwardShipments.length === 0 && order.fulfillmentStatus === "Pending" && (
-                        <div className="flex flex-col items-center py-8 text-center">
-                          <div className="h-12 w-12 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center mb-3">
-                            <Clock className="h-6 w-6 text-amber-400" />
+                          <div className="flex items-center gap-2 px-5 py-4 border-b border-indigo-100 bg-indigo-50/60">
+                            <h2 className="text-xs font-bold  capitalize tracking-wider">Live Payment Gateway</h2>
                           </div>
-                          <p className="text-sm font-bold text-slate-500">Order is Pending</p>
-                          <p className="text-xs text-slate-400 mt-1 max-w-xs">
-                            Approve the order first. Once status is <strong>Confirmed</strong>, you can schedule a shipment via Shiprocket.
-                          </p>
-                        </div>
+                          <CardContent className="p-5 space-y-4">
+                            {razorpayData?.payment ? (
+                              <>
+                                <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                  <div>
+                                    <p className="text-[9px] font-bold text-slate-400 capitalize tracking-wider">Gateway Status</p>
+                                    <p className="text-xs font-bold text-slate-800 capitalize">{razorpayData.payment.status}</p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="text-[9px] font-bold text-slate-400 capitalize tracking-wider">Method</p>
+                                    <p className="text-xs font-bold text-slate-800 uppercase">{razorpayData.payment.method}</p>
+                                  </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <div className="flex items-center justify-between text-xs">
+                                    <span className="font-semibold text-slate-500">Captured Amount</span>
+                                    <span className="font-bold text-slate-900">{formatCurrency((razorpayData.payment.amount || 0) / 100)}</span>
+                                  </div>
+                                  {razorpayData.payment.fee && (
+                                    <div className="flex items-center justify-between text-[11px]">
+                                      <span className="font-medium text-red-500">Gateway Fee</span>
+                                      <span className="font-semibold text-red-600">-{formatCurrency((razorpayData.payment.fee || 0) / 100)}</span>
+                                    </div>
+                                  )}
+                                  {razorpayData.payment.tax && (
+                                    <div className="flex items-center justify-between text-[11px]">
+                                      <span className="font-medium text-red-500">Tax on Fee</span>
+                                      <span className="font-semibold text-red-600">-{formatCurrency((razorpayData.payment.tax || 0) / 100)}</span>
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="pt-3 border-t border-slate-100">
+                                  <p className="text-[9px] font-bold text-slate-400 capitalize tracking-wider mb-2">Customer Identity (Gateway)</p>
+                                  <div className="space-y-1.5">
+                                    <div className="flex items-center gap-2">
+                                      <Mail className="h-3 w-3 text-slate-400" />
+                                      <span className="text-[11px] font-medium text-slate-700">{razorpayData.payment.email || "N/A"}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <Phone className="h-3 w-3 text-slate-400" />
+                                      <span className="text-[11px] font-medium text-slate-700">{razorpayData.payment.contact || "N/A"}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </>
+                            ) : !razorpayLoading ? (
+                              <div className="text-center py-4">
+                                <p className="text-xs font-medium text-red-500">Failed to load Razorpay details.</p>
+                              </div>
+                            ) : null}
+                          </CardContent>
+                        </Card>
                       )}
 
-                      {/* Existing shipments */}
-                      {!shipmentsLoading && (forwardShipments.length > 0 || reverseShipments.length > 0) && (
-                        <div className="space-y-3">
-                          {/* Forward shipments */}
-                          {forwardShipments.map((s: any) => (
-                            <ShipmentCard
-                              key={s.id}
-                              shipment={s}
-                              onScheduleReturn={!hasReverse ? handleStartReturn : undefined}
-                            />
-                          ))}
-                          {/* Reverse shipments */}
-                          {reverseShipments.map((s: any) => (
-                            <ShipmentCard
-                              key={s.id}
-                              shipment={s}
-                            />
-                          ))}
+                      {/* ── Admin Notes Card ──────────────────────────── */}
+                      <Card className="border border-slate-200/80 shadow-2xs bg-white overflow-hidden rounded-2xl">
+                        <div className="flex items-center gap-2 px-5 py-4 border-b border-slate-100 bg-slate-50/60">
+                          <FileText className="h-4 w-4 text-slate-400" />
+                          <h2 className="text-xs font-bold text-slate-800 capitalize tracking-wider">Internal Admin Notes</h2>
                         </div>
-                      )}
+                        <CardContent className="p-5">
+                          <textarea
+                            className="w-full h-24 p-3 text-xs font-medium text-slate-700 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-500 resize-none"
+                            placeholder="Add notes or handling preferences for this order…"
+                            value={adminNote}
+                            onChange={e => setAdminNote(e.target.value)}
+                          />
+                          <div className="mt-2.5 flex justify-end">
+                            <Button size="sm" variant="outline" disabled={updateMutation.isPending}
+                              onClick={handleSaveNote}
+                              className="text-xs font-bold text-slate-900 border-slate-200 hover:bg-slate-100 bg-white h-8 gap-1.5 cursor-pointer">
+                              <Save className="h-3.5 w-3.5" /> Save Note
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
 
-                      {/* ── Schedule Shipment Form ────────────────────── */}
-                      {(showForwardSchedule || showReturnSchedule) && (
-                        <div id="schedule-section" className={`rounded-xl border p-4 space-y-4 ${
-                          isReturnMode
-                            ? "bg-orange-50/60 border-orange-200"
-                            : "bg-gradient-to-br from-indigo-50 to-violet-50 border-indigo-200"
-                        }`}>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              {isReturnMode
-                                ? <ArrowDownLeft className="h-4 w-4 text-orange-500" />
-                                : <ArrowUpRight className="h-4 w-4 text-indigo-500" />
-                              }
+                    </div>
+
+                  </div>
+                </TabsContent>
+
+                {/* ═════════════════════════════════════════════════════════════
+                    TAB 2: CREATE SHIPMENT & LOGISTICS
+                    ═════════════════════════════════════════════════════════════ */}
+                <TabsContent value="shipment" className="space-y-6 mt-0">
+
+                  {/* Gatekeeper Check */}
+                  {!isApproved ? (
+                    <Card className="border border-amber-200 bg-amber-50/70 p-8 text-center rounded-2xl shadow-2xs">
+                      <div className="max-w-md mx-auto space-y-3">
+                        <div className="h-12 w-12 rounded-2xl bg-amber-100 border border-amber-200 flex items-center justify-center mx-auto text-amber-600">
+                          <Lock className="h-6 w-6" />
+                        </div>
+                        <h3 className="text-base font-bold text-amber-900">Order Approval Required</h3>
+                        <p className="text-xs text-amber-700 font-medium">
+                          You cannot create a shipment or assign a courier until the order has been accepted/approved in Step 1.
+                        </p>
+                        <Button
+                          onClick={() => setActiveTab("order-details")}
+                          className="mt-2 text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white gap-2"
+                        >
+                          <ShoppingBag className="h-4 w-4" /> Go to Step 1: Order Details & Approval
+                        </Button>
+                      </div>
+                    </Card>
+                  ) : (
+                    <div className="grid gap-6 lg:grid-cols-3">
+
+                      {/* Left Column (Create Shipment Form & Shipments List) */}
+                      <div className="lg:col-span-2 space-y-6">
+
+                        {/* Post-Creation Action Banner */}
+                        {lastCreatedShipmentId && (
+                          <div className="p-4 rounded-2xl bg-slate-900 text-white border border-slate-800 flex items-center justify-between shadow-2xs flex-wrap gap-3">
+                            <div className="flex items-center gap-3">
+                              <CheckCircle2 className="h-5 w-5 text-emerald-400 flex-shrink-0" />
                               <div>
-                                <p className={`text-xs font-bold uppercase tracking-wider ${isReturnMode ? "text-orange-700" : "text-indigo-700"}`}>
+                                <p className="text-xs font-bold text-white">Shipment #SHP-{lastCreatedShipmentId} Created Successfully!</p>
+                                <p className="text-[11px] text-slate-300 font-medium">Click below to manage courier details, schedule pickup, and download shipping labels.</p>
+                              </div>
+                            </div>
+                            <Button asChild className="h-8 px-3.5 text-xs font-bold bg-white hover:bg-slate-100 text-slate-900 gap-1.5 shadow-2xs cursor-pointer">
+                              <Link href={`/shipments/${lastCreatedShipmentId}`}>
+                                Go to Shipment Details <ChevronRight className="h-3.5 w-3.5" />
+                              </Link>
+                            </Button>
+                          </div>
+                        )}
+
+                        {/* Schedule Shipment Form */}
+                        <Card className={`border shadow-2xs overflow-hidden rounded-2xl ${isReturnMode ? "bg-white border-orange-200" : "bg-white border-slate-200/80"
+                          }`}>
+                          <div className={`flex items-center justify-between px-5 py-4 border-b ${isReturnMode ? "bg-orange-50/80 border-orange-100" : "bg-slate-50/80 border-slate-100"
+                            }`}>
+                            <div className="flex items-center gap-2">
+                              {isReturnMode ? (
+                                <ArrowDownLeft className="h-4 w-4 text-orange-600" />
+                              ) : (
+                                <ArrowUpRight className="h-4 w-4 text-slate-700" />
+                              )}
+                              <div>
+                                <h2 className={`text-xs font-bold capitalize tracking-wider ${isReturnMode ? "text-orange-900" : "text-slate-900"
+                                  }`}>
                                   {isReturnMode ? "Schedule Return Shipment" : "Schedule Forward Shipment"}
-                                </p>
-                                <p className="text-[10px] text-slate-400 font-medium">
+                                </h2>
+                                <p className="text-[10px] text-slate-500 font-medium">
                                   {isReturnMode
-                                    ? "Creates a reverse logistics shipment via Shiprocket (Pending approval)"
-                                    : "Creates the order in Shiprocket and assigns AWB"}
+                                    ? "Create reverse logistics pickup from customer via Shiprocket"
+                                    : "Push order to Shiprocket, generate AWB, and request pickup"}
                                 </p>
                               </div>
                             </div>
                             {isReturnMode && (
-                              <button onClick={handleCancelReturn} className="text-slate-400 hover:text-slate-600">
-                                <XCircle className="h-4 w-4" />
-                              </button>
+                              <Button variant="ghost" size="sm" onClick={handleCancelReturn} className="h-7 text-xs text-slate-500">
+                                <XCircle className="h-3.5 w-3.5 mr-1" /> Cancel Return
+                              </Button>
                             )}
                           </div>
 
-                          {/* Dimensions */}
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                            <div>
-                              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                                Weight (kg) *
-                              </label>
-                              <Input
-                                type="number" step="0.1" min="0.1"
-                                value={shipWeight}
-                                onChange={e => setShipWeight(e.target.value)}
-                                className="h-9 text-xs font-semibold border-slate-200"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                                Length (cm)
-                              </label>
-                              <Input
-                                type="number" step="1" min="1"
-                                value={shipLength}
-                                onChange={e => setShipLength(e.target.value)}
-                                className="h-9 text-xs font-semibold border-slate-200"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                                Breadth (cm)
-                              </label>
-                              <Input
-                                type="number" step="1" min="1"
-                                value={shipBreadth}
-                                onChange={e => setShipBreadth(e.target.value)}
-                                className="h-9 text-xs font-semibold border-slate-200"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                                Height (cm)
-                              </label>
-                              <Input
-                                type="number" step="1" min="1"
-                                value={shipHeight}
-                                onChange={e => setShipHeight(e.target.value)}
-                                className="h-9 text-xs font-semibold border-slate-200"
-                              />
-                            </div>
-                          </div>
+                          <CardContent className="p-5 space-y-4">
 
-                          {/* Pickup Date & Time */}
-                          <div>
-                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                              Pickup Date & Time <span className="text-red-400">*</span>
-                            </label>
-                            <Input
-                              type="datetime-local"
-                              value={shipPickupDate}
-                              min={(() => {
-                                const offset = new Date().getTimezoneOffset() * 60000;
-                                return new Date(Date.now() - offset).toISOString().slice(0, 16);
-                              })()}
-                              onChange={e => setShipPickupDate(e.target.value)}
-                              className="h-9 text-xs font-semibold border-slate-200"
-                            />
-                          </div>
+                            {/* Dimensions */}
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                              <div>
+                                <label className="text-[10px] font-bold text-slate-500 capitalize tracking-wider block mb-1">
+                                  Weight (kg) <span className="text-red-500">*</span>
+                                </label>
+                                <Input
+                                  type="number" step="0.1" min="0.1"
+                                  value={shipWeight}
+                                  onChange={e => setShipWeight(e.target.value)}
+                                  className="h-9 text-xs font-semibold border-slate-200 rounded-lg"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-bold text-slate-500 capitalize tracking-wider block mb-1">
+                                  Length (cm)
+                                </label>
+                                <Input
+                                  type="number" step="1" min="1"
+                                  value={shipLength}
+                                  onChange={e => setShipLength(e.target.value)}
+                                  className="h-9 text-xs font-semibold border-slate-200 rounded-lg"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-bold text-slate-500 capitalize tracking-wider block mb-1">
+                                  Breadth (cm)
+                                </label>
+                                <Input
+                                  type="number" step="1" min="1"
+                                  value={shipBreadth}
+                                  onChange={e => setShipBreadth(e.target.value)}
+                                  className="h-9 text-xs font-semibold border-slate-200 rounded-lg"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-bold text-slate-500 capitalize tracking-wider block mb-1">
+                                  Height (cm)
+                                </label>
+                                <Input
+                                  type="number" step="1" min="1"
+                                  value={shipHeight}
+                                  onChange={e => setShipHeight(e.target.value)}
+                                  className="h-9 text-xs font-semibold border-slate-200 rounded-lg"
+                                />
+                              </div>
+                            </div>
 
-                          {/* Remarks */}
-                          <div>
-                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                              Remarks / Comments
-                            </label>
-                            <Input
-                              value={shipRemarks}
-                              onChange={e => setShipRemarks(e.target.value)}
-                              placeholder="e.g. Handle with care, fragile items…"
-                              className="h-9 text-xs border-slate-200"
-                            />
-                          </div>
+                            {/* Pickup Date & Time */}
+                            <div>
+                              <label className="text-[10px] font-bold text-slate-500 capitalize tracking-wider block mb-1">
+                                Scheduled Pickup Date & Time <span className="text-red-500">*</span>
+                              </label>
+                              <Input
+                                type="datetime-local"
+                                value={shipPickupDate}
+                                min={(() => {
+                                  const offset = new Date().getTimezoneOffset() * 60000;
+                                  return new Date(Date.now() - offset).toISOString().slice(0, 16);
+                                })()}
+                                onChange={e => setShipPickupDate(e.target.value)}
+                                className="h-9 text-xs font-semibold border-slate-200 rounded-lg"
+                              />
+                            </div>
 
-                          {/* Warehouse / pickup location card */}
-                          {/* Warehouse / pickup location card */}
-                          {order.warehouse ? (
-                            <div className="rounded-lg border border-slate-200 bg-white p-3 space-y-1.5">
-                              <div className="flex items-center gap-1.5 mb-1">
-                                <PackageCheck className="h-3.5 w-3.5 text-indigo-400" />
-                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                                  {isReturnMode ? "Return Destination" : "Pickup Location"}
+                            {/* Remarks */}
+                            <div>
+                              <label className="text-[10px] font-bold text-slate-500 capitalize tracking-wider block mb-1">
+                                Remarks / Courier Instructions
+                              </label>
+                              <Input
+                                value={shipRemarks}
+                                onChange={e => setShipRemarks(e.target.value)}
+                                placeholder="e.g. Fragile items, handle with care…"
+                                className="h-9 text-xs border-slate-200 rounded-lg"
+                              />
+                            </div>
+
+                            {/* Warehouse / pickup location */}
+                            {order.warehouse ? (
+                              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 space-y-1">
+                                <div className="flex items-center gap-1.5 mb-1">
+                                  <PackageCheck className="h-3.5 w-3.5 text-slate-700" />
+                                  <p className="text-[10px] font-bold text-slate-500 capitalize tracking-wider">
+                                    {isReturnMode ? "Return Destination Warehouse" : "Dispatch Warehouse"}
+                                  </p>
+                                </div>
+                                <p className="text-xs font-bold text-slate-800">{order.warehouse.name}</p>
+                                <p className="text-[10px] text-slate-500 font-medium">
+                                  {order.warehouse.addressLine1} {order.warehouse.addressLine2 ? `, ${order.warehouse.addressLine2}` : ''}
+                                </p>
+                                <p className="text-[10px] text-slate-500 font-medium">
+                                  {order.warehouse.city}, {order.warehouse.state} — {order.warehouse.pincode}
                                 </p>
                               </div>
-                              <p className="text-xs font-bold text-slate-800">{order.warehouse.name}</p>
-                              <p className="text-[10px] text-slate-500 font-medium">
-                                {order.warehouse.addressLine1}
-                                {order.warehouse.addressLine2 ? `, ${order.warehouse.addressLine2}` : ''}
-                              </p>
-                              <p className="text-[10px] text-slate-500 font-medium">
-                                {order.warehouse.city}, {order.warehouse.state} — {order.warehouse.pincode}
-                              </p>
-                              {order.warehouse.phone && (
-                                <p className="text-[10px] text-slate-400">📞 {order.warehouse.phone}</p>
-                              )}
-                              {!order.warehouseId && (
-                                <p className="text-[10px] text-amber-500 font-semibold mt-1">⚠ Using default warehouse (none assigned to order)</p>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="flex items-start gap-2 p-2.5 bg-red-50 rounded-lg border border-red-200 text-[10px] text-red-600">
-                              <PackageCheck className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                              <span>No warehouse found. Please add a warehouse in Settings before scheduling.</span>
-                            </div>
-                          )}
+                            ) : (
+                              <div className="p-3 bg-red-50 rounded-xl border border-red-200 text-xs text-red-600">
+                                ⚠ No warehouse assigned. Please set up a warehouse in Settings.
+                              </div>
+                            )}
 
-                          {/* Submit */}
-                          <Button
-                            onClick={handleScheduleShipment}
-                            disabled={createShipmentMutation.isPending}
-                            className={`w-full h-10 text-xs font-bold gap-2 text-white ${
-                              isReturnMode
+                            {/* Submit */}
+                            <Button
+                              onClick={handleScheduleShipment}
+                              disabled={createShipmentMutation.isPending}
+                              className={`w-full h-10 text-xs font-bold gap-2 text-white shadow-xs rounded-xl cursor-pointer ${isReturnMode
                                 ? "bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700"
-                                : "bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700"
-                            }`}
-                          >
-                            {createShipmentMutation.isPending
-                              ? <><Loader2 className="h-4 w-4 animate-spin" /> {isReturnMode ? "Scheduling return…" : "Scheduling with Shiprocket…"}</>
-                              : <><CalendarCheck2 className="h-4 w-4" /> {isReturnMode ? "Schedule Return Shipment" : "Schedule Forward Shipment"}</>
-                            }
-                          </Button>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  {/* ── Admin Notes ───────────────────────────────────── */}
-                  <Card className="border border-slate-200 shadow-sm bg-white overflow-hidden">
-                    <div className="flex items-center gap-2 px-5 py-3.5 border-b border-slate-100 bg-slate-50/60">
-                      <FileText className="h-4 w-4 text-slate-400" />
-                      <h2 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Internal Admin Notes</h2>
-                    </div>
-                    <CardContent className="p-5">
-                      <textarea
-                        className="w-full h-24 p-3 text-xs font-medium text-slate-700 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-400 resize-none"
-                        placeholder="Customer preferences, handling instructions, internal flags…"
-                        value={adminNote}
-                        onChange={e => setAdminNote(e.target.value)}
-                      />
-                      <div className="mt-2.5 flex justify-end">
-                        <Button size="sm" variant="outline" disabled={updateMutation.isPending}
-                          onClick={handleSaveNote}
-                          className="text-xs font-bold text-indigo-600 border-indigo-200 hover:bg-indigo-50 h-8 gap-1.5">
-                          <Save className="h-3.5 w-3.5" /> Save Note
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                </div>
-
-                {/* ════════════════════════════════════
-                    RIGHT COLUMN
-                    ════════════════════════════════════ */}
-                <div className="space-y-5">
-
-                  {/* ── Order Actions ─────────────────────────────────── */}
-                  <Card className="border border-slate-200 shadow-sm bg-white overflow-hidden">
-                    <div className="px-5 py-3.5 border-b border-slate-100 bg-slate-50/60">
-                      <h2 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Order Actions</h2>
-                    </div>
-                    <CardContent className="p-5 space-y-3">
-                      {/* Payment Status badge */}
-                      {ps && (
-                        <div className={`flex items-center gap-2.5 p-3 rounded-lg border ${ps.bg}`}>
-                          {ps.icon}
-                          <div>
-                            <p className={`text-xs font-bold ${ps.color}`}>{ps.label}</p>
-                            <p className="text-[10px] text-slate-400 font-medium">Payment status</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Fulfillment Status dropdown */}
-                      {ff && (
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 block">Fulfillment Status</label>
-                          <div className="relative">
-                            <select
-                              value={order.fulfillmentStatus}
-                              onChange={e => handleFulfillmentChange(e.target.value)}
-                              className="w-full h-9 pl-3 pr-8 text-xs font-semibold text-slate-900 border border-slate-200 rounded-md bg-white appearance-none outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-300"
+                                : "bg-slate-900 hover:bg-black"
+                                }`}
                             >
-                              {Object.entries(fulfillmentStatusConfig).map(([val, cfg]) => (
-                                <option key={val} value={val}>{cfg.label}</option>
-                              ))}
-                            </select>
-                            <div className={`absolute right-3 top-3.5 h-2 w-2 rounded-full ${ff.dot}`} />
-                          </div>
-                        </div>
-                      )}
+                              {createShipmentMutation.isPending
+                                ? <><Loader2 className="h-4 w-4 animate-spin" /> {isReturnMode ? "Scheduling Return…" : "Creating Shiprocket Order…"}</>
+                                : <><CalendarCheck2 className="h-4 w-4" /> {isReturnMode ? "Create Return Shipment" : "Create Forward Shipment & Assign AWB"}</>
+                              }
+                            </Button>
 
-                      {/* Return Status dropdown */}
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 block">Return Status</label>
-                        <div className="relative">
-                          <select
-                            value={order.returnStatus || "None"}
-                            onChange={e => handleReturnStatusChange(e.target.value)}
-                            className="w-full h-9 pl-3 pr-8 text-xs font-semibold text-slate-900 border border-slate-200 rounded-md bg-white appearance-none outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-300"
-                          >
-                            {["None", "Requested", "Approved", "Rejected", "Pickup Scheduled", "Picked Up", "Returned",
-                              "QC Pending", "QC Passed", "QC Failed", "Refund Processing", "Refunded", "Closed"]
-                              .map(v => <option key={v} value={v}>{v}</option>)}
-                          </select>
-                          <div className={`absolute right-3 top-3.5 h-2 w-2 rounded-full ${order.returnStatus === "Refunded" ? "bg-emerald-500" :
-                            order.returnStatus === "Rejected" ? "bg-red-500" :
-                              order.returnStatus === "None" ? "bg-slate-300" : "bg-amber-400"}`} />
-                        </div>
-                      </div>
+                          </CardContent>
+                        </Card>
 
-                      {/* Approve / Reject */}
-                      {order.fulfillmentStatus !== "Cancelled" && order.fulfillmentStatus !== "Completed" && (
-                        <div className="grid grid-cols-2 gap-2 pt-1">
-                          {/* Approve — only show when not already approved */}
-                          <Button
-                            onClick={handleApproveOrder}
-                            disabled={updateMutation.isPending || (order.paymentStatus === "PAID" && order.fulfillmentStatus === "Confirmed")}
-                            className="h-10 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 disabled:opacity-60"
-                          >
-                            <CheckCircle2 className="h-4 w-4" /> Approve
-                          </Button>
-                          <Button
-                            onClick={handleRejectOrder}
-                            disabled={updateMutation.isPending}
-                            variant="outline"
-                            className="h-10 text-xs font-bold text-red-600 border-red-200 bg-red-50 hover:bg-red-100 gap-1.5"
-                          >
-                            <XCircle className="h-4 w-4" /> Reject
-                          </Button>
-                        </div>
-                      )}
-
-                      {/* Process Refund */}
-                      <Button variant="outline" className="w-full h-9 text-xs font-bold text-violet-600 border-violet-200 hover:bg-violet-50 gap-1.5">
-                        <Banknote className="h-3.5 w-3.5" /> Process Refund
-                      </Button>
-                    </CardContent>
-                  </Card>
-
-                  {/* ── Payment Details ───────────────────────────────── */}
-                  <Card className="border border-slate-200 shadow-sm bg-white overflow-hidden">
-                    <div className="flex items-center gap-2 px-5 py-3.5 border-b border-slate-100 bg-slate-50/60">
-                      <Receipt className="h-4 w-4 text-slate-400" />
-                      <h2 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Payment Details</h2>
-                    </div>
-                    <CardContent className="p-5 space-y-3">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                          <CreditCard className="h-3.5 w-3.5 text-slate-400" />
-                          <div>
-                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Method</p>
-                            <p className="text-xs font-bold text-slate-700">{order.paymentMethod || "Razorpay"}</p>
-                          </div>
-                        </div>
-                        {order.razorpayPaymentId && order.razorpayPaymentId !== "N/A" && (
-                          <div className="flex items-center gap-2 p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                            <Hash className="h-3.5 w-3.5 text-slate-400" />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Payment ID</p>
-                              <p className="text-[10px] font-mono font-semibold text-slate-600 truncate">{order.razorpayPaymentId}</p>
+                        {/* Existing Shipments List */}
+                        <Card className="border border-slate-200/80 shadow-2xs bg-white overflow-hidden rounded-2xl">
+                          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/60">
+                            <div className="flex items-center gap-2">
+                              <Truck className="h-4 w-4 text-slate-700" />
+                              <h2 className="text-xs font-bold text-slate-800 capitalize tracking-wider">Shipment Records</h2>
+                              {shipments.length > 0 && (
+                                <span className="h-5 w-5 rounded-full bg-slate-200 text-[10px] font-bold text-slate-700 flex items-center justify-center">
+                                  {shipments.length}
+                                </span>
+                              )}
                             </div>
-                            <Copy className="h-3 w-3 text-slate-300 cursor-pointer hover:text-slate-600 flex-shrink-0"
-                              onClick={() => { navigator.clipboard.writeText(order.razorpayPaymentId); toast.success("Copied!") }} />
+                            <button
+                              onClick={() => refetchShipments()}
+                              className="text-slate-400 hover:text-slate-600 transition-colors p-1"
+                              title="Refresh shipments"
+                            >
+                              <RefreshCw className="h-3.5 w-3.5" />
+                            </button>
                           </div>
-                        )}
-                        {order.couponCode && (
-                          <div className="flex items-center gap-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-100">
-                            <Tag className="h-3.5 w-3.5 text-emerald-500" />
-                            <div>
-                              <p className="text-[9px] font-bold text-emerald-400 uppercase tracking-wider">Coupon</p>
-                              <p className="text-xs font-bold text-emerald-700 font-mono">{order.couponCode}</p>
+                          <CardContent className="p-5 space-y-3">
+                            {shipmentsLoading ? (
+                              <div className="flex items-center gap-2 text-xs text-slate-400 py-4">
+                                <Loader2 className="h-4 w-4 animate-spin" /> Loading shipments…
+                              </div>
+                            ) : shipments.length === 0 ? (
+                              <div className="text-center py-6 text-slate-400 text-xs font-medium">
+                                No shipments created yet. Fill the form above to schedule shipment with Shiprocket.
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                {forwardShipments.map((s: any) => (
+                                  <ShipmentCard
+                                    key={s.id}
+                                    shipment={s}
+                                    onScheduleReturn={!hasReverse ? handleStartReturn : undefined}
+                                  />
+                                ))}
+                                {reverseShipments.map((s: any) => (
+                                  <ShipmentCard
+                                    key={s.id}
+                                    shipment={s}
+                                  />
+                                ))}
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+
+                      </div>
+
+                      {/* Right Column (Live Status Overview & Timeline) */}
+                      <div className="space-y-6">
+
+                        {/* Live Status Overview Card (Read-Only Badges) */}
+                        <Card className="border border-slate-200 shadow-2xs bg-white overflow-hidden rounded-2xl">
+                          <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/60">
+                            <h2 className="text-xs font-bold text-slate-800 capitalize tracking-wider">Live Status Overview</h2>
+                          </div>
+                          <CardContent className="p-5 space-y-4">
+                            {/* Fulfillment Status (Read-Only Highlighted Badge) */}
+                            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
+                              <label className="text-[10px] font-bold text-slate-400 capitalize tracking-wider block">Fulfillment Status</label>
+                              {ff && (
+                                <div className="flex items-center gap-2">
+                                  <span className="inline-flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-full border border-slate-200 bg-white text-slate-800 shadow-2xs">
+                                    <span className={`h-2 w-2 rounded-full ${ff.dot}`} />
+                                    {ff.label}
+                                  </span>
+                                </div>
+                              )}
                             </div>
+
+                            {/* Current Shipment Status (Read-Only Highlighted Badge) */}
+                            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
+                              <label className="text-[10px] font-bold text-slate-400 capitalize tracking-wider block">Current Shipment Status</label>
+                              <div className="flex items-center gap-2">
+                                <span className={`inline-flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-full border shadow-2xs ${currentShipmentCls}`}>
+                                  <span className="h-2 w-2 rounded-full bg-current animate-pulse" />
+                                  {currentShipmentStatusStr}
+                                </span>
+                              </div>
+                              {forwardShipments[0]?.awb_code && (
+                                <p className="text-[10px] text-slate-500 font-mono font-semibold pt-1">
+                                  AWB: {forwardShipments[0].awb_code} {forwardShipments[0].courier_name ? `(${forwardShipments[0].courier_name})` : ''}
+                                </p>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        {/* Order Timeline */}
+                        <Card className="border border-slate-200/80 shadow-2xs bg-white overflow-hidden rounded-2xl">
+                          <div className="flex items-center gap-2 px-5 py-4 border-b border-slate-100 bg-slate-50/60">
+                            <Clock className="h-4 w-4 text-slate-700" />
+                            <h2 className="text-xs font-bold text-slate-800 capitalize tracking-wider">Fulfillment Progress</h2>
                           </div>
-                        )}
+                          <CardContent className="p-5">
+                            <div className="space-y-0">
+                              <TimelineStep
+                                title="1. Order Placed"
+                                subtitle={order.created_at ? new Date(order.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}
+                                done={true}
+                              />
+                              <TimelineStep
+                                title="2. Order Approved"
+                                subtitle={isApproved ? "Order accepted" : "Pending approval"}
+                                done={isApproved}
+                                current={!isApproved}
+                              />
+                              <TimelineStep
+                                title="3. Shipment Created"
+                                subtitle={hasForward ? `AWB: ${forwardShipments[0]?.awb_code || "Generated"}` : "Awaiting shipment creation"}
+                                done={hasForward}
+                                current={isApproved && !hasForward}
+                              />
+                              <TimelineStep
+                                title="4. Pickup & In Transit"
+                                subtitle={forwardShipments[0]?.pickup_status || "Pending pickup"}
+                                done={currentStep >= 4}
+                                current={hasForward && currentStep < 4}
+                              />
+                              <TimelineStep
+                                title="5. Delivered"
+                                subtitle="Package delivered to customer"
+                                done={currentStep >= 5}
+                              />
+                            </div>
+                          </CardContent>
+                        </Card>
+
                       </div>
 
-                      {/* Grand Total highlight */}
-                      <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white">
-                        <p className="text-[10px] font-bold uppercase tracking-wider opacity-75 mb-1">Grand Total</p>
-                        <p className="text-2xl font-black">{formatCurrency(order.financials.total)}</p>
-                        <p className={`text-xs font-bold mt-1 ${order.paymentStatus === "PAID" ? "text-emerald-200" : "text-amber-200"}`}>
-                          {order.paymentStatus === "PAID" ? "✓ Payment Received" : "⏳ Awaiting Payment"}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* ── Order Timeline ────────────────────────────────── */}
-                  <Card className="border border-slate-200 shadow-sm bg-white overflow-hidden">
-                    <div className="flex items-center gap-2 px-5 py-3.5 border-b border-slate-100 bg-slate-50/60">
-                      <Clock className="h-4 w-4 text-slate-400" />
-                      <h2 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Order Timeline</h2>
                     </div>
-                    <CardContent className="p-5">
-                      <div className="space-y-0">
-                        <TimelineStep
-                          title="Order Placed"
-                          subtitle={order.created_at ? new Date(order.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}
-                          done={true}
-                        />
-                        <TimelineStep
-                          title="Payment Received"
-                          subtitle={order.paymentStatus === "PAID" ? "Payment verified" : "Awaiting payment"}
-                          done={order.paymentStatus === "PAID"}
-                          current={order.paymentStatus !== "PAID"}
-                        />
-                        <TimelineStep
-                          title="Order Confirmed"
-                          subtitle="Order accepted and processing"
-                          done={currentStep >= 1}
-                          current={currentStep === 0 && order.paymentStatus === "PAID"}
-                        />
-                        <TimelineStep
-                          title="Packed & Shipped"
-                          subtitle={hasForward ? `AWB: ${forwardShipments[0]?.awb_code || "Pending"}` : "Awaiting dispatch"}
-                          done={currentStep >= 4}
-                          current={currentStep === 2 || currentStep === 3}
-                        />
-                        <TimelineStep
-                          title="Delivered"
-                          subtitle="Order delivered to customer"
-                          done={currentStep >= 5}
-                          current={currentStep === 4}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
+                  )}
+                </TabsContent>
 
-                </div>
-              </div>
+              </Tabs>
             )}
-          </div>
 
-          {/* ── Bottom Bar ───────────────────────────────────────────────── */}
-          {order && (
-            <div className="px-6 py-3 bg-white border-t border-slate-200 flex items-center justify-between sticky bottom-0 z-10">
-              <div className="flex gap-2">
-                <Button variant="outline" className="text-xs font-bold text-slate-600 border-slate-200 h-8 gap-1.5">
-                  <Printer className="h-3.5 w-3.5" /> Print Invoice
-                </Button>
-                <Button variant="outline" className="text-xs font-bold text-slate-600 border-slate-200 h-8 gap-1.5">
-                  <Download className="h-3.5 w-3.5" /> Download PDF
-                </Button>
-              </div>
-              {order.fulfillmentStatus !== "Cancelled" && (
-                <button onClick={() => setIsCancelOpen(true)}
-                  className="text-xs font-bold text-red-500 hover:underline cursor-pointer">
-                  Cancel Order
-                </button>
-              )}
-            </div>
-          )}
+          </div>
         </div>
       </SidebarInset>
 
-      {/* ── Cancel Order Dialog ───────────────────────────────────────────── */}
+      {/* ── Cancel / Reject Order Dialog ─────────────────────────────────── */}
       <Dialog open={isCancelOpen} onOpenChange={setIsCancelOpen}>
-        <DialogContent className="sm:max-w-[420px] bg-white border border-slate-200 text-slate-900 shadow-xl rounded-2xl">
+        <DialogContent className="sm:max-w-[440px] bg-white border border-slate-200 text-slate-900 shadow-xl rounded-2xl">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-red-600 flex items-center gap-2">
-              <XCircle className="h-5 w-5" /> Cancel / Reject Order
+              <XCircle className="h-5 w-5" /> Cancel this order?
             </DialogTitle>
-            <DialogDescription className="text-xs text-slate-500 font-medium mt-1">
-              This will mark the order as cancelled. Please provide a reason.
+            <DialogDescription className="text-xs text-slate-600 font-medium mt-1.5 leading-relaxed">
+              The shipment has not been handed over to the courier. Cancelling this order will cancel the Shiprocket shipment. The payment will remain <strong>PAID</strong> and a refund will be available to start separately.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <label className="text-xs font-bold text-slate-600 block mb-2">Reason</label>
+          <div className="py-3">
+            <label className="text-xs font-bold text-slate-700 block mb-1.5">Cancellation Reason (Optional)</label>
             <textarea
               value={cancelReason}
               onChange={e => setCancelReason(e.target.value)}
-              placeholder="e.g. Customer request, Out of stock, Fraudulent order…"
-              className="w-full h-24 p-3 text-xs font-medium text-slate-700 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-red-300 focus:border-red-400 resize-none"
+              placeholder="e.g. Out of stock, customer requested cancellation, invalid delivery pincode…"
+              className="w-full h-20 p-3 text-xs font-medium text-slate-700 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-1 focus:ring-red-300 focus:border-red-400 resize-none"
             />
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setIsCancelOpen(false)}
-              className="text-xs font-bold border-slate-200 text-slate-600">
-              Close
+            <Button
+              variant="outline"
+              onClick={() => setIsCancelOpen(false)}
+              className="text-xs font-bold border-slate-200 text-slate-700 rounded-xl cursor-pointer"
+            >
+              Keep Order
             </Button>
-            <Button onClick={handleCancelOrder} disabled={updateMutation.isPending}
-              className="text-xs font-bold bg-red-600 hover:bg-red-700 text-white gap-1.5">
-              <XCircle className="h-3.5 w-3.5" /> Confirm Cancel
+            <Button
+              onClick={handleCancelOrder}
+              disabled={cancelOrderMutation.isPending}
+              className="text-xs font-bold bg-red-600 hover:bg-red-700 text-white gap-1.5 rounded-xl cursor-pointer"
+            >
+              {cancelOrderMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <XCircle className="h-3.5 w-3.5" />}
+              Cancel Order
             </Button>
           </DialogFooter>
         </DialogContent>

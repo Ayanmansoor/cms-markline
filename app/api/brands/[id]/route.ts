@@ -75,7 +75,8 @@ export async function PUT(
     const supabase = await getSupabaseClient()
     const body = await request.json()
 
-    const { name, description, image_url, since_year, discount_key, gender } = body
+    const { name, description, image_url, since_year, discount_key, gender, isActive, is_active } = body
+    const activeVal = typeof isActive === 'boolean' ? isActive : (typeof is_active === 'boolean' ? is_active : false)
 
     const { data, error } = await supabase
       .from('brands')
@@ -85,7 +86,8 @@ export async function PUT(
         image_url: image_url || null,
         since_year: since_year || null,
         discount_key: discount_key || null,
-        gender: gender ? gender.toUpperCase() : null
+        gender: gender ? gender.toUpperCase() : null,
+        isActive: activeVal,
       })
       .eq('id', id)
       .select()

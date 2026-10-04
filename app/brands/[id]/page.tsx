@@ -21,6 +21,7 @@ interface BrandFormValues {
   gender: string
   imageUrl: string
   discountKey: string
+  isActive: boolean
 }
 
 const defaultFormValues: BrandFormValues = {
@@ -30,6 +31,7 @@ const defaultFormValues: BrandFormValues = {
   gender: "men",
   imageUrl: "",
   discountKey: "",
+  isActive: false,
 }
 
 export default function EditBrandPage() {
@@ -58,6 +60,7 @@ export default function EditBrandPage() {
   const gender = watch("gender")
   const imageUrl = watch("imageUrl")
   const discountKey = watch("discountKey")
+  const isActive = watch("isActive")
 
   // Fetch brand data
   const { data: brandResponse, isLoading: isBrandLoading } = useQuery({
@@ -90,6 +93,7 @@ export default function EditBrandPage() {
         imageUrl: b.image_url || "",
         discountKey: b.discount_key || "",
         sinceYear: sinceYearVal,
+        isActive: b.isActive ?? b.is_active ?? false,
       })
     }
   }, [brandResponse, reset])
@@ -173,10 +177,10 @@ export default function EditBrandPage() {
 
   const discounts = discountsData?.success && Array.isArray(discountsData.discounts)
     ? discountsData.discounts.map((d: any) => ({
-        id: d.id,
-        name: d.name,
-        percentage: d.percentage || "",
-      }))
+      id: d.id,
+      name: d.name,
+      percentage: d.percentage || "",
+    }))
     : []
 
   // React Query: Update Brand Mutation
@@ -256,7 +260,8 @@ export default function EditBrandPage() {
         image_url: finalImageUrl || null,
         since_year: sinceYearDate,
         gender: v.gender,
-        discount_key: v.discountKey || null
+        discount_key: v.discountKey || null,
+        isActive: !!v.isActive,
       }
 
       toast.loading("Saving updated brand details...", { id: toastId })
@@ -272,71 +277,76 @@ export default function EditBrandPage() {
 
   return (
     <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className="bg-[#f4f7fb]">
+      <AppSidebar variant="inset" />
+      <SidebarInset className="bg-white flex flex-col h-screen overflow-hidden">
         <SiteHeader />
 
-        <div className="flex flex-1 flex-col p-8 pt-6">
-          <div className="flex items-center justify-between mb-8 border-b border-slate-200 pb-4">
-            <div>
-              <div className="flex items-center text-xs text-slate-500 mb-1">
-                <span className="hover:text-slate-900 cursor-pointer" onClick={() => router.push("/brands")}>Brands</span>
-                <span className="mx-1">{'>'}</span>
-                <span className="font-bold text-slate-900">Edit Brand</span>
+        <div className="flex-1 overflow-y-auto p-5 pt-6 flex flex-col justify-between">
+          <div>
+            <div className="w-full flex items-center justify-between mb-4 border-b border-slate-200 pb-2">
+              <div>
+                <div className="flex items-center text-xs text-slate-500 mb-1">
+                  <span className="hover:text-slate-900 cursor-pointer" onClick={() => router.push("/brands")}>Brands</span>
+                  <span className="mx-1">{'>'}</span>
+                  <span className="font-bold text-slate-900">Edit Brand</span>
+                </div>
+                <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">Edit Brand</h1>
               </div>
-              <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">Edit Brand</h1>
+            </div>
+
+            <div className="w-full outline-none rounded-lg border p-5">
+              {isBrandLoading ? (
+                <div className="text-sm font-medium text-slate-500 py-8 text-center bg-white border border-slate-200 rounded-xl shadow-sm">
+                  Loading brand details...
+                </div>
+              ) : (
+                <BrandGeneralTab
+                  name={name}
+                  setName={(v) => setValue("name", v)}
+                  sinceYear={sinceYear}
+                  setSinceYear={(v) => setValue("sinceYear", v)}
+                  description={description}
+                  setDescription={(v) => setValue("description", v)}
+                  gender={gender}
+                  setGender={(v) => setValue("gender", v)}
+                  imageUrl={imageUrl}
+                  setImageUrl={(v) => setValue("imageUrl", v)}
+                  discountKey={discountKey}
+                  setDiscountKey={(v) => setValue("discountKey", v)}
+                  discountsList={discounts}
+                  uploadMethod={uploadMethod}
+                  setUploadMethod={setUploadMethod}
+                  setLocalFile={setLocalFile}
+                  folders={folders}
+                  selectedFolder={selectedFolder}
+                  setSelectedFolder={setSelectedFolder}
+                  isFoldersLoading={isFoldersLoading}
+                  handleFileChange={handleFileChange}
+                  isActive={isActive}
+                  setIsActive={(v) => setValue("isActive", v)}
+                />
+              )}
             </div>
           </div>
 
-          <div className="outline-none">
-            {isBrandLoading ? (
-              <div className="text-sm font-medium text-slate-500 py-8 text-center bg-white border border-slate-200 rounded-xl shadow-sm">
-                Loading brand details...
-              </div>
-            ) : (
-              <BrandGeneralTab 
-                name={name}
-                setName={(v) => setValue("name", v)}
-                sinceYear={sinceYear}
-                setSinceYear={(v) => setValue("sinceYear", v)}
-                description={description}
-                setDescription={(v) => setValue("description", v)}
-                gender={gender}
-                setGender={(v) => setValue("gender", v)}
-                imageUrl={imageUrl}
-                setImageUrl={(v) => setValue("imageUrl", v)}
-                discountKey={discountKey}
-                setDiscountKey={(v) => setValue("discountKey", v)}
-                discountsList={discounts}
-                uploadMethod={uploadMethod}
-                setUploadMethod={setUploadMethod}
-                setLocalFile={setLocalFile}
-                folders={folders}
-                selectedFolder={selectedFolder}
-                setSelectedFolder={setSelectedFolder}
-                isFoldersLoading={isFoldersLoading}
-                handleFileChange={handleFileChange}
-              />
-            )}
-          </div>
 
-          <div className="mt-8 pt-4 flex items-center justify-end gap-3 border-t border-slate-200 bg-[#f4f7fb] sticky bottom-0 pb-4">
-            <Button 
-              variant="outline" 
-              onClick={() => router.push("/brands")}
-              disabled={isLoading}
-              className="font-bold text-slate-700 border-slate-300 bg-white hover:bg-slate-55 px-6"
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSave}
-              disabled={isLoading}
-              className="font-bold bg-black text-white hover:bg-black/90 px-6 shadow-sm"
-            >
-              {isLoading ? "Saving..." : "Save Brand"}
-            </Button>
-          </div>
+        </div>
+        <div className="mt-8 px-5 -mb-5 px-6 py-4 flex items-center justify-end gap-3 border-t border-slate-200 bg-white sticky bottom-0 z-30 shadow-md">
+          <Button
+            variant="outline"
+            onClick={() => router.push("/brands")}
+            disabled={isLoading}
+            className="font-bold text-slate-700 border-slate-300 bg-white hover:bg-slate-50 px-6 cursor-pointer"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={isLoading}
+            className="font-bold bg-black text-white hover:bg-black/90 px-6 shadow-sm cursor-pointer"
+          >
+            {isLoading ? "Saving..." : "Save Brand"}
+          </Button>
         </div>
       </SidebarInset>
     </SidebarProvider>

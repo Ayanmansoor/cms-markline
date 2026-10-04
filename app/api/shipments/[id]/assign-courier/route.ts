@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createClient as createServerClient } from '@/lib/supabase/server'
+import { getShiprocketToken } from '@/lib/shiprocket'
 
 export async function POST(
   request: Request,
@@ -11,16 +12,21 @@ export async function POST(
     const body = await request.json()
     const { courierId, courierName } = body
 
+    console.log('[DEBUG assign-courier API] Incoming Request params ID:', id, 'Body:', body)
+
     if (!courierId || !courierName) {
+      console.warn('[DEBUG assign-courier API] Missing courierId or courierName')
       return NextResponse.json({ error: 'courierId and courierName are required' }, { status: 400 })
     }
 
-    const cookieStore = await cookies()
-    const token = cookieStore.get('shiprocket_token')?.value
-
-    if (!token) {
+    let token: string | null = null
+    try {
+      token = await getShiprocketToken()
+      console.log('[DEBUG assign-courier API] Shiprocket token obtained successfully:', token ? `${token.slice(0, 15)}...` : 'NULL')
+    } catch (error: any) {
+      console.error('[DEBUG assign-courier API] Failed to obtain Shiprocket token:', error?.message || error)
       return NextResponse.json(
-        { error: 'No Shiprocket token found in cookies. Please authenticate in Settings.' },
+        { error: 'Failed to obtain Shiprocket token.' },
         { status: 401 }
       )
     }
@@ -35,8 +41,11 @@ export async function POST(
       .single()
 
     if (getErr || !shipment) {
+      console.error('[DEBUG assign-courier API] Shipment not found in DB for ID:', id, 'Error:', getErr)
       return NextResponse.json({ error: 'Shipment not found' }, { status: 404 })
     }
+
+    console.log('[DEBUG assign-courier API] Found Shipment in DB:', shipment)
 
     const srShipmentId = shipment.shipment_id
 
@@ -51,7 +60,10 @@ export async function POST(
           courier_id: parseInt(courierId)
         }
 
-        const assignRes = await fetch('https://apiv2.shiprocket.in/v1/external/courier/assign/awb', {
+        const endpointUrl = `${process.env.SHIPROCKET_API_URL}/courier/assign/awb`
+        console.log('[DEBUG assign-courier API] Calling Shiprocket AWB assign endpoint:', endpointUrl, 'Payload:', assignPayload)
+
+        const assignRes = await fetch(endpointUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -62,26 +74,29 @@ export async function POST(
 
         const assignData = await assignRes.json()
 
-        console.log(assignData, 'this is assigndata')
+        console.log('[DEBUG assign-courier API] Shiprocket Response HTTP Status:', assignRes.status, 'Response Data:', JSON.stringify(assignData, null, 2))
 
         // Handle ShipRocket wallet / balance errors (status_code 350)
         if (assignData.awb_assign_status === 0) {
           const errMsg = assignData.response?.data?.awb_assign_error || assignData.message || 'AWB assignment failed'
-          return NextResponse.json({ error: errMsg, shiprocketStatusCode: assignData.status_code }, { status: 402 })
+          console.error('[DEBUG assign-courier API] AWB Assignment Failed (awb_assign_status=0):', errMsg, assignData)
+          return NextResponse.json({ error: errMsg, shiprocketStatusCode: assignData.status_code, details: assignData }, { status: 402 })
         }
 
         if (assignData.response?.data?.awb_code) {
           awbCode = assignData.response.data.awb_code
           trackingUrl = `https://www.shiprocket.in/shipment-tracking/${awbCode}`
+          console.log('[DEBUG assign-courier API] AWB Code successfully assigned:', awbCode, 'Tracking URL:', trackingUrl)
         } else {
-          console.warn('Shiprocket AWB allocation failed, no awb_code in response:', assignData)
+          console.warn('[DEBUG assign-courier API] Shiprocket AWB allocation failed, no awb_code in response:', assignData)
           demoMode = true
         }
       } catch (err: any) {
-        console.error('Error assigning AWB with Shiprocket:', err.message)
+        console.error('[DEBUG assign-courier API] Error assigning AWB with Shiprocket:', err.message, err)
         demoMode = true
       }
     } else {
+      console.warn('[DEBUG assign-courier API] No srShipmentId (shipment_id) found on shipment record, falling back to demo mode.')
       demoMode = true
     }
 
@@ -99,6 +114,8 @@ export async function POST(
       updates.shipment_status = 'AWB Generated'
     }
 
+    console.log('[DEBUG assign-courier API] Updating DB shipments table with payload:', updates)
+
     const { data: updatedShipment, error: updateErr } = await supabase
       .from('shipments')
       .update(updates)
@@ -107,16 +124,20 @@ export async function POST(
       .single()
 
     if (updateErr) {
+      console.error('[DEBUG assign-courier API] Error updating DB shipment record:', updateErr)
       return NextResponse.json({ error: updateErr.message }, { status: 400 })
     }
+
+    console.log('[DEBUG assign-courier API] Successfully updated shipment record in DB:', updatedShipment)
 
     return NextResponse.json({
       success: true,
       demoMode,
-      // shipment: updatedShipment
+      shipment: updatedShipment
     })
 
   } catch (error: any) {
+    console.error('[DEBUG assign-courier API] Unhandled Exception:', error?.message || error)
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 })
   }
 }

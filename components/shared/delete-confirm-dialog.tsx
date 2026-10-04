@@ -23,13 +23,13 @@ export function DeleteConfirmDialog({
 }: DeleteConfirmDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md bg-white border border-slate-200 rounded-xl shadow-lg p-6">
+      <DialogContent className="max-w-md border p-6">
         <DialogHeader>
-          <DialogTitle className="text-base font-bold text-slate-900">{title}</DialogTitle>
-          <DialogDescription className="text-xs text-slate-500 mt-1.5">
+          <DialogTitle className="text-base font-bold">{title}</DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground mt-1.5">
             {itemName ? (
               <>
-                Are you sure you want to delete <span className="font-semibold text-slate-900">"{itemName}"</span>? {description}
+                Are you sure you want to delete <span className="font-semibold text-foreground">"{itemName}"</span>? {description}
               </>
             ) : (
               description
@@ -41,7 +41,7 @@ export function DeleteConfirmDialog({
             variant="outline"
             onClick={onClose}
             disabled={isPending}
-            className="h-8 text-xs font-bold border-slate-200 hover:bg-slate-50"
+            className="h-8 text-xs font-medium"
           >
             Cancel
           </Button>
@@ -49,7 +49,7 @@ export function DeleteConfirmDialog({
             variant="destructive"
             onClick={onConfirm}
             disabled={isPending}
-            className="h-8 text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white"
+            className="h-8 text-xs font-medium"
           >
             {isPending ? "Deleting..." : "Delete Item"}
           </Button>

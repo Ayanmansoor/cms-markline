@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient } from '@supabase/supabase-js'
+import { parseImageUrl } from '@/lib/utils'
+import { getShiprocketToken } from '@/lib/shiprocket'
 
 export async function GET(
   request: Request,
@@ -13,7 +15,7 @@ export async function GET(
 
     const { data: s, error } = await supabase
       .from('shipments')
-      .select('*, order:orders(*, address(*), order_items(*, product(*))), warehouse:warehouses(*)')
+      .select('*, order:orders(*, address(*), order_items(*, product(*, product_variants(id, image_url)))), warehouse:warehouses(*)')
       .eq('id', parseInt(id))
       .single()
 
@@ -52,18 +54,35 @@ export async function GET(
       customerName = s.order.address.recipientName
     }
 
-    const orderItems = (s.order?.order_items || []).map((oi: any) => ({
-      id: oi.id,
-      productName: oi.product?.name || 'Unknown Product',
-      productImage: oi.product?.image || null,
-      variantId: oi.variant_id,
-      sku: oi.sku || null,
-      color: oi.color || null,
-      size: oi.size || null,
-      quantity: oi.quantity,
-      unitPrice: oi.unit_price,
-      finalPrice: oi.final_price
-    }))
+    const orderItems = (s.order?.order_items || []).map((oi: any) => {
+      let rawImage = oi.product?.image_url || oi.product?.image || oi.image_url || null
+
+      if (!rawImage && oi.variant_id && oi.product?.product_variants) {
+        const variant = oi.product.product_variants.find((v: any) => v.id === oi.variant_id)
+        if (variant?.image_url) {
+          rawImage = variant.image_url
+        }
+      }
+
+      if (!rawImage && oi.product?.product_variants?.[0]?.image_url) {
+        rawImage = oi.product.product_variants[0].image_url
+      }
+
+      const productImage = parseImageUrl(rawImage)
+
+      return {
+        id: oi.id,
+        productName: oi.product?.name || 'Unknown Product',
+        productImage,
+        variantId: oi.variant_id,
+        sku: oi.sku || null,
+        color: oi.color || null,
+        size: oi.size || null,
+        quantity: oi.quantity,
+        unitPrice: oi.unit_price,
+        finalPrice: oi.final_price
+      }
+    })
 
     const date = s.created_at ? new Date(s.created_at).toLocaleDateString('en-US', {
       month: 'short',
@@ -77,10 +96,14 @@ export async function GET(
     let shiprocketOrderDetails: any = null
     if (s.shiprocket_order_id) {
       try {
-        const cookieStore = await cookies()
-        const token = cookieStore.get('shiprocket_token')?.value
+        let token: string | null = null
+        try {
+          token = await getShiprocketToken()
+        } catch (e) {
+          console.warn('Failed to obtain Shiprocket token')
+        }
         if (token) {
-          const srRes = await fetch(`https://apiv2.shiprocket.in/v1/external/orders/show/${s.shiprocket_order_id}`, {
+          const srRes = await fetch(`${process.env.SHIPROCKET_API_URL}/orders/show/${s.shiprocket_order_id}`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',

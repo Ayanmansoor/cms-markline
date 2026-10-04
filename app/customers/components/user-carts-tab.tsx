@@ -43,12 +43,12 @@ export function UserCartsTab({ carts, formatCurrency, renderEmptyState }: UserCa
       <Table>
         <TableHeader className="bg-[#f8fafc]">
           <TableRow className="border-b border-slate-100 hover:bg-transparent">
-            <TableHead className="h-11 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Cart Item ID</TableHead>
-            <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest">Added Date</TableHead>
-            <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest">Product</TableHead>
-            <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Quantity</TableHead>
-            <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right px-6">Price</TableHead>
-            <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right px-6">Actions</TableHead>
+            <TableHead className="h-11 px-6 text-xs font-semibold text-slate-600">Cart Item ID</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600">Added Date</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600">Product</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600 text-center">Quantity</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600 text-right px-6">Price</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600 text-right px-6">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

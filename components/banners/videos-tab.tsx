@@ -23,7 +23,8 @@ import {
   FileVideoIcon,
   UploadIcon,
   LinkIcon,
-  Loader2
+  Loader2,
+  PlusIcon
 } from "lucide-react"
 
 interface VideosTabProps {
@@ -53,7 +54,7 @@ export function VideosTab({ isAddOpen, onAddOpenChange }: VideosTabProps) {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [formMode, setFormMode] = useState<"create" | "edit">("create")
   const [editingVideo, setEditingVideo] = useState<any>(null)
-  
+
   // File upload state (outside React Hook Form for custom file handling)
   const [videoFile, setVideoFile] = useState<File | null>(null)
   const [isUploadingVideo, setIsUploadingVideo] = useState(false)
@@ -285,8 +286,8 @@ export function VideosTab({ isAddOpen, onAddOpenChange }: VideosTabProps) {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Status:</span>
+          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1 rounded-lg shadow-sm">
+            <span className="text-xs font-semibold text-slate-500 capitalize tracking-wider">Status:</span>
             <Select value={videoStatusFilter} onValueChange={(val: any) => { setVideoStatusFilter(val); setVideoPage(1); }}>
               <SelectTrigger className="border-0 bg-transparent p-0 h-auto shadow-none font-bold text-slate-900 focus-visible:ring-0 focus-visible:ring-offset-0 focus:ring-0 text-xs gap-1.5">
                 <SelectValue placeholder="All" />
@@ -298,6 +299,13 @@ export function VideosTab({ isAddOpen, onAddOpenChange }: VideosTabProps) {
               </SelectContent>
             </Select>
           </div>
+
+          <Button
+            onClick={() => { resetVideoForm(); setFormMode("create"); setIsFormOpen(true); }}
+            className="text-xs font-bold text-white bg-black hover:bg-black/90 shadow-sm h-9 px-4 rounded-lg flex items-center gap-1.5"
+          >
+            <PlusIcon className="h-4 w-4" /> Add New Video
+          </Button>
         </div>
       </div>
 
@@ -308,12 +316,12 @@ export function VideosTab({ isAddOpen, onAddOpenChange }: VideosTabProps) {
             <TableHead className="w-12 text-center px-4">
               <input type="checkbox" className="rounded border-slate-300 w-3.5 h-3.5" />
             </TableHead>
-            <TableHead className="h-11 text-[9px] font-black text-slate-500 uppercase tracking-widest">VIDEO PREVIEW</TableHead>
-            <TableHead className="h-11 text-[9px] font-black text-slate-500 uppercase tracking-widest">INTERNAL VIDEO URL</TableHead>
-            <TableHead className="h-11 text-[9px] font-black text-slate-500 uppercase tracking-widest">SORT ORDER</TableHead>
-            <TableHead className="h-11 text-[9px] font-black text-slate-500 uppercase tracking-widest">CREATED AT</TableHead>
-            <TableHead className="h-11 text-[9px] font-black text-slate-500 uppercase tracking-widest">STATUS</TableHead>
-            <TableHead className="h-11 text-[9px] font-black text-slate-500 uppercase tracking-widest text-center px-6">ACTIONS</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600">Video Preview</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600">Internal Video URL</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600">Sort Order</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600">Created At</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600">Status</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600 text-center px-6">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -360,7 +368,7 @@ export function VideosTab({ isAddOpen, onAddOpenChange }: VideosTabProps) {
                             playsInline
                             preload="metadata"
                             onMouseEnter={(e) => {
-                              e.currentTarget.play().catch(() => {})
+                              e.currentTarget.play().catch(() => { })
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.pause()
@@ -404,9 +412,8 @@ export function VideosTab({ isAddOpen, onAddOpenChange }: VideosTabProps) {
                           toggleVideoActiveMutation.mutate({ id: video.id, is_active: checked })
                         }}
                       />
-                      <span className={`text-[10px] font-bold uppercase tracking-wider ${
-                        video.is_active !== false ? "text-green-600" : "text-slate-400"
-                      }`}>
+                      <span className={`text-[10px] font-bold capitalize tracking-wider ${video.is_active !== false ? "text-green-600" : "text-slate-400"
+                        }`}>
                         {video.is_active !== false ? "Active" : "Inactive"}
                       </span>
                     </div>
@@ -554,22 +561,20 @@ export function VideosTab({ isAddOpen, onAddOpenChange }: VideosTabProps) {
                 <button
                   type="button"
                   onClick={() => setValue("upload_method", "url")}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-bold transition-all ${
-                    uploadMethod === "url"
-                      ? "bg-white text-slate-900 shadow-sm"
-                      : "text-slate-500 hover:text-slate-900"
-                  }`}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-bold transition-all ${uploadMethod === "url"
+                    ? "bg-white text-slate-900 shadow-sm"
+                    : "text-slate-500 hover:text-slate-900"
+                    }`}
                 >
                   <LinkIcon className="h-3.5 w-3.5" /> Paste URL
                 </button>
                 <button
                   type="button"
                   onClick={() => setValue("upload_method", "file")}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-bold transition-all ${
-                    uploadMethod === "file"
-                      ? "bg-white text-slate-900 shadow-sm"
-                      : "text-slate-500 hover:text-slate-900"
-                  }`}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-bold transition-all ${uploadMethod === "file"
+                    ? "bg-white text-slate-900 shadow-sm"
+                    : "text-slate-500 hover:text-slate-900"
+                    }`}
                 >
                   <UploadIcon className="h-3.5 w-3.5" /> Upload File
                 </button>
@@ -672,10 +677,10 @@ export function VideosTab({ isAddOpen, onAddOpenChange }: VideosTabProps) {
                   {isUploadingVideo
                     ? "Uploading to Cloudinary..."
                     : saveVideoMutation.isPending
-                    ? "Saving..."
-                    : formMode === "create"
-                    ? "Add Video"
-                    : "Save Changes"}
+                      ? "Saving..."
+                      : formMode === "create"
+                        ? "Add Video"
+                        : "Save Changes"}
                 </span>
               </Button>
             </DialogFooter>

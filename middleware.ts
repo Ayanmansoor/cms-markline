@@ -4,8 +4,17 @@ import { updateSession } from '@/lib/supabase/middleware'
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
-  // Bypasses heavy middleware execution for login page and auth endpoints immediately
-  if (pathname === '/login' || pathname.startsWith('/api/auth')) {
+  // Handle CORS preflight OPTIONS requests immediately
+  if (request.method === 'OPTIONS') {
+    const response = new NextResponse(null, { status: 204 })
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-CSRF-Token')
+    return response
+  }
+
+  // Bypasses heavy middleware page execution for login page and API endpoints immediately
+  if (pathname === '/login' || pathname.startsWith('/api/')) {
     return NextResponse.next()
   }
 

@@ -20,7 +20,7 @@ export function AddressesTable() {
 
   const renderEmptyState = () => (
     <div className="flex flex-col items-center justify-center py-12 bg-white border border-slate-200 rounded-xl shadow-xs text-center">
-      <p className="text-slate-400 font-bold text-xs tracking-wider uppercase">data is not present</p>
+      <p className="text-slate-400 font-bold text-xs tracking-wider capitalize">Data is not present</p>
     </div>
   )
 
@@ -41,11 +41,11 @@ export function AddressesTable() {
       <Table>
         <TableHeader className="bg-[#f8fafc]">
           <TableRow className="border-b border-slate-100 hover:bg-transparent">
-            <TableHead className="h-11 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Customer</TableHead>
-            <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest">Label</TableHead>
-            <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest">Recipient</TableHead>
-            <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest">Full Address</TableHead>
-            <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest">Location / Zip Code</TableHead>
+            <TableHead className="h-11 px-6 text-xs font-semibold text-slate-600">Customer</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600">Label</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600">Recipient</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600">Full Address</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600">Location / Zip Code</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -62,7 +62,7 @@ export function AddressesTable() {
                   <MapPinIcon className="h-3.5 w-3.5 text-slate-400" />
                   <span className="text-xs font-bold text-slate-900">{addr.name || 'Address'}</span>
                   {addr.is_selected === 'true' && (
-                    <Badge variant="secondary" className="ml-2 text-[8px] font-bold bg-blue-100 text-blue-700 uppercase tracking-wider">Selected</Badge>
+                    <Badge variant="secondary" className="ml-2 text-[8px] font-bold bg-blue-100 text-blue-700 capitalize tracking-wider">Selected</Badge>
                   )}
                 </div>
               </TableCell>

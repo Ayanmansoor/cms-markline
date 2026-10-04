@@ -212,11 +212,11 @@ export function HeaderAlertsTab() {
           <Table>
             <TableHeader className="bg-[#f8fafc]">
               <TableRow className="border-b border-slate-100 hover:bg-transparent">
-                <TableHead className="h-11 text-[9px] font-black text-slate-500 uppercase tracking-widest pl-6">PREVIEW / TEXT</TableHead>
-                <TableHead className="h-11 text-[9px] font-black text-slate-500 uppercase tracking-widest">URL REDIRECT</TableHead>
-                <TableHead className="h-11 text-[9px] font-black text-slate-500 uppercase tracking-widest text-center">COLOR</TableHead>
-                <TableHead className="h-11 text-[9px] font-black text-slate-500 uppercase tracking-widest">STATUS</TableHead>
-                <TableHead className="h-11 text-[9px] font-black text-slate-500 uppercase tracking-widest text-center pr-6">ACTIONS</TableHead>
+                <TableHead className="h-11 text-xs font-bold text-slate-500 tracking-wider pl-6">Preview / Text</TableHead>
+                <TableHead className="h-11 text-xs font-bold text-slate-500 tracking-wider">URL Redirect</TableHead>
+                <TableHead className="h-11 text-xs font-bold text-slate-500 tracking-wider text-center">Color</TableHead>
+                <TableHead className="h-11 text-xs font-bold text-slate-500 tracking-wider">Status</TableHead>
+                <TableHead className="h-11 text-xs font-bold text-slate-500 tracking-wider text-center pr-6">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -285,7 +285,7 @@ export function HeaderAlertsTab() {
                           />
                           <Badge
                             variant="outline"
-                            className={`text-[9px] font-bold rounded px-1.5 py-0.5 uppercase tracking-wider ${header.isActive !== false
+                            className={`text-[9px] font-bold rounded px-1.5 py-0.5 capitalize tracking-wider ${header.isActive !== false
                                 ? "text-green-600 bg-green-50 border-green-200"
                                 : "text-slate-400 bg-slate-50 border-slate-200"
                               }`}

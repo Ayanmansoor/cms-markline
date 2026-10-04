@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
+import { getShiprocketToken } from '@/lib/shiprocket'
 
 export async function POST(
   request: Request,
@@ -9,8 +10,12 @@ export async function POST(
   try {
     const { id } = await params
 
-    const cookieStore = await cookies()
-    const token = cookieStore.get('shiprocket_token')?.value
+    let token: string | null = null
+    try {
+      token = await getShiprocketToken()
+    } catch (error) {
+      console.warn('Shiprocket token not available')
+    }
 
     const supabase = await createClient()
 
@@ -41,7 +46,7 @@ export async function POST(
           shipment_id: [parseInt(srShipmentId)]
         }
 
-        const res = await fetch('https://apiv2.shiprocket.in/v1/external/courier/generate/pickup', {
+        const res = await fetch(`${process.env.SHIPROCKET_API_URL}/courier/generate/pickup`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

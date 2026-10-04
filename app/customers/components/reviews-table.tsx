@@ -19,7 +19,7 @@ export function ReviewsTable() {
 
   const renderEmptyState = () => (
     <div className="flex flex-col items-center justify-center py-12 bg-white border border-slate-200 rounded-xl shadow-xs text-center">
-      <p className="text-slate-400 font-bold text-xs tracking-wider uppercase">data is not present</p>
+      <p className="text-slate-400 font-bold text-xs tracking-wider capitalize">Data is not present</p>
     </div>
   )
 
@@ -40,11 +40,11 @@ export function ReviewsTable() {
       <Table>
         <TableHeader className="bg-[#f8fafc]">
           <TableRow className="border-b border-slate-100 hover:bg-transparent">
-            <TableHead className="h-11 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest w-[160px]">Customer</TableHead>
-            <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest w-[180px]">Product</TableHead>
-            <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest w-[120px] text-center">Rating</TableHead>
-            <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest">Review Details</TableHead>
-            <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right px-6">Date</TableHead>
+            <TableHead className="h-11 px-6 text-xs font-semibold text-slate-600 w-[160px]">Customer</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600 w-[180px]">Product</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600 w-[120px] text-center">Rating</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600">Review Details</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600 text-right px-6">Date</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

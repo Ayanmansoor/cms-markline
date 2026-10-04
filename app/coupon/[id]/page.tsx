@@ -199,13 +199,13 @@ export default function EditCouponPage() {
 
   return (
     <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className="bg-[#f4f7fb] flex flex-col h-screen overflow-hidden">
+      <AppSidebar variant="inset" />
+      <SidebarInset className="bg-white flex flex-col h-screen overflow-hidden">
         <SiteHeader />
 
         <div className="flex-1 overflow-y-auto p-8">
 
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-8 w-full">
             <div>
               <div className="flex items-center text-xs text-slate-500 mb-1">
                 <span className="hover:text-slate-900 cursor-pointer" onClick={() => router.push("/coupon")}>Coupons</span>
@@ -235,11 +235,11 @@ export default function EditCouponPage() {
           </div>
 
           {isCouponLoading ? (
-            <div className="text-sm font-medium text-slate-500 py-8 text-center bg-white border border-slate-200 rounded-xl shadow-sm">
+            <div className="text-sm font-medium text-slate-500 py-8 text-center bg-white border border-slate-200 rounded-xl shadow-sm w-full">
               Loading coupon details...
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 w-full">
 
               {/* Left Column - Form Sections */}
               <div className="space-y-6">
@@ -448,43 +448,10 @@ export default function EditCouponPage() {
                 {/* Real-time Storefront Preview */}
                 <Card className="shadow-sm border border-slate-200 rounded-xl bg-white overflow-hidden">
                   <div className="bg-black text-white px-5 py-3 flex justify-between items-center">
-                    <h3 className="text-xs font-bold uppercase tracking-wider">Storefront Preview</h3>
+                    <h3 className="text-xs font-bold capitalize tracking-wider">Storefront Preview</h3>
                     <Sparkles className="w-3.5 h-3.5 text-yellow-400 animate-pulse" />
                   </div>
                   <CardContent className="p-0">
-                    <div className="p-5 border-b border-slate-100 flex justify-center bg-slate-50">
-                      <div className="w-full aspect-[4/3] max-w-[240px] bg-gradient-to-br from-indigo-900 via-slate-900 to-emerald-950 rounded-xl flex flex-col items-center justify-center text-white shadow-lg relative overflow-hidden p-4 border border-slate-800">
-                        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-sky-400/25 via-transparent to-transparent"></div>
-                        
-                        {/* Ticket Cutout shapes */}
-                        <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-50 rounded-full border border-slate-200 z-10"></div>
-                        <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-50 rounded-full border border-slate-200 z-10"></div>
-                        
-                        <div className="text-[10px] font-black tracking-widest text-emerald-400 uppercase mb-1">
-                          {discountType === "Free Shipping" ? "FREE DELIVERY" : "SPECIAL COUPON"}
-                        </div>
-                        
-                        <h2 className="text-3xl font-black mb-1 tracking-tight">
-                          {discountType === "Percentage" 
-                            ? `${parsedVal}% OFF` 
-                            : discountType === "Free Shipping" 
-                              ? "SHIPPING" 
-                              : `₹${parsedVal} OFF`}
-                        </h2>
-                        
-                        <div className="px-3 py-1 bg-white/10 hover:bg-white/15 transition-all text-xs font-mono font-black rounded border border-white/20 uppercase tracking-widest my-2 select-all cursor-pointer">
-                          {code || "YOURCODE"}
-                        </div>
-
-                        <p className="text-[9px] font-bold text-slate-300 uppercase px-4 text-center truncate max-w-full">
-                          {title || "Active Promotional Discount"}
-                        </p>
-
-                        <div className="text-[8px] font-semibold text-slate-400 mt-2 uppercase tracking-wide">
-                          {noExpiry ? "Ongoing Offer" : `Expires ${formatDate(expiresAt)}`}
-                        </div>
-                      </div>
-                    </div>
                     <div className="p-5 space-y-3">
                       <div className="flex justify-between items-center text-xs font-semibold text-slate-500">
                         <span>Minimum Cart Order</span>

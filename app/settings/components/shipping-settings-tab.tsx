@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import axios from "axios"
@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { PlusIcon, Pencil, Trash2, Truck, IndianRupee, ShieldCheck, Gift } from "lucide-react"
+import { PlusIcon, Pencil, Trash2, Truck, ShieldCheck } from "lucide-react"
 import { toast } from "sonner"
 
 interface ShippingFormValues {
@@ -29,14 +29,311 @@ const defaultFormValues: ShippingFormValues = {
   shipping_charge: 79.00,
 }
 
-export function ShippingSettingsTab() {
-  const queryClient = useQueryClient()
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [editSetting, setEditSetting] = useState<any>(null)
+// ----------------------------------------------------------------------
+// 1. Separate Create Dialog Component
+// ----------------------------------------------------------------------
+interface CreateShippingDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
 
+function CreateShippingDialog({ open, onOpenChange }: CreateShippingDialogProps) {
+  const queryClient = useQueryClient()
   const { register, watch, setValue, reset, getValues } = useForm<ShippingFormValues>({
     defaultValues: defaultFormValues,
   })
+
+  useEffect(() => {
+    if (open) {
+      reset(defaultFormValues)
+    }
+  }, [open, reset])
+
+  const createMutation = useMutation({
+    mutationFn: async (payload: any) => {
+      const response = await axios.post("/api/settings/shipping", payload)
+      return response.data
+    },
+    onSuccess: () => {
+      toast.success("Shipping configuration created successfully!")
+      queryClient.invalidateQueries({ queryKey: ["settings-shipping"] })
+      onOpenChange(false)
+    },
+    onError: (err: any) => {
+      const msg = err.response?.data?.error || err.message || "Failed to create shipping settings"
+      toast.error(msg)
+    }
+  })
+
+  const handleCreate = () => {
+    const v = getValues()
+    const minAmount = Number(v.free_delivery_min_amount)
+    const charge = Number(v.shipping_charge)
+
+    if (isNaN(minAmount) || minAmount < 0) {
+      toast.error("Please enter a valid non-negative free delivery threshold amount!")
+      return
+    }
+    if (isNaN(charge) || charge < 0) {
+      toast.error("Please enter a valid non-negative shipping charge!")
+      return
+    }
+
+    createMutation.mutate({
+      shipping_enabled: v.shipping_enabled,
+      free_delivery_enabled: v.free_delivery_enabled,
+      free_delivery_min_amount: minAmount,
+      shipping_charge: charge,
+    })
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md bg-gray-50 border border-slate-200 rounded-xl shadow-lg">
+        <DialogHeader>
+          <DialogTitle className="text-base font-bold text-slate-900">
+            Add Shipping Configuration
+          </DialogTitle>
+          <DialogDescription className="text-sm text-slate-500">
+            Configure free shipping minimum order requirements and standard delivery charges.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-5 py-2">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <Label className="text-sm font-bold text-slate-800">Enable Shipping Service</Label>
+              <p className="text-[10px] text-slate-400 mt-0.5">Toggle shipping capability across checkout.</p>
+            </div>
+            <Switch
+              checked={watch("shipping_enabled")}
+              onCheckedChange={(checked) => setValue("shipping_enabled", checked)}
+            />
+          </div>
+
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <Label className="text-sm font-bold text-slate-800">Enable Free Delivery Threshold</Label>
+              <p className="text-[10px] text-slate-400 mt-0.5">Waive shipping charge above minimum cart total.</p>
+            </div>
+            <Switch
+              checked={watch("free_delivery_enabled")}
+              onCheckedChange={(checked) => setValue("free_delivery_enabled", checked)}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-sm font-bold text-slate-700">Free Delivery Minimum Order Amount (₹)</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-2.5 text-sm text-slate-400 font-bold">₹</span>
+              <Input
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="600.00"
+                {...register("free_delivery_min_amount", { valueAsNumber: true })}
+                className="h-9 text-sm pl-7 bg-slate-50/50"
+              />
+            </div>
+            <p className="text-[10px] text-slate-400">Orders equal to or above this amount qualify for free shipping.</p>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-sm font-bold text-slate-700">Standard Shipping Charge (₹)</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-2.5 text-sm text-slate-400 font-bold">₹</span>
+              <Input
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="79.00"
+                {...register("shipping_charge", { valueAsNumber: true })}
+                className="h-9 text-sm pl-7 bg-slate-50/50"
+              />
+            </div>
+            <p className="text-[10px] text-slate-400">Flat shipping fee applied when order total is below free delivery threshold.</p>
+          </div>
+        </div>
+
+        <DialogFooter className="border-t border-slate-100 pt-4">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="h-8 text-sm font-bold border-slate-200">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleCreate}
+            disabled={createMutation.isPending}
+            className="bg-black hover:bg-black/90 text-white font-bold text-sm h-8 shadow-sm"
+          >
+            {createMutation.isPending ? "Creating..." : "Create Configuration"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// ----------------------------------------------------------------------
+// 2. Separate Edit Dialog Component
+// ----------------------------------------------------------------------
+interface EditShippingDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  setting: any
+}
+
+function EditShippingDialog({ open, onOpenChange, setting }: EditShippingDialogProps) {
+  const queryClient = useQueryClient()
+  const { register, watch, setValue, reset, getValues } = useForm<ShippingFormValues>()
+
+  useEffect(() => {
+    if (setting) {
+      reset({
+        shipping_enabled: setting.shipping_enabled !== false,
+        free_delivery_enabled: setting.free_delivery_enabled !== false,
+        free_delivery_min_amount: Number(setting.free_delivery_min_amount ?? 600.00),
+        shipping_charge: Number(setting.shipping_charge ?? 79.00),
+      })
+    }
+  }, [setting, reset])
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, payload }: { id: number; payload: any }) => {
+      const response = await axios.put(`/api/settings/shipping/${id}`, payload)
+      return response.data
+    },
+    onSuccess: () => {
+      toast.success("Shipping configuration updated successfully!")
+      queryClient.invalidateQueries({ queryKey: ["settings-shipping"] })
+      onOpenChange(false)
+    },
+    onError: (err: any) => {
+      const msg = err.response?.data?.error || err.message || "Failed to update shipping settings"
+      toast.error(msg)
+    }
+  })
+
+  const handleUpdate = () => {
+    if (!setting?.id) {
+      toast.error("No shipping configuration selected for update!")
+      return
+    }
+
+    const v = getValues()
+    const minAmount = Number(v.free_delivery_min_amount)
+    const charge = Number(v.shipping_charge)
+
+    if (isNaN(minAmount) || minAmount < 0) {
+      toast.error("Please enter a valid non-negative free delivery threshold amount!")
+      return
+    }
+    if (isNaN(charge) || charge < 0) {
+      toast.error("Please enter a valid non-negative shipping charge!")
+      return
+    }
+
+    updateMutation.mutate({
+      id: setting.id,
+      payload: {
+        shipping_enabled: v.shipping_enabled,
+        free_delivery_enabled: v.free_delivery_enabled,
+        free_delivery_min_amount: minAmount,
+        shipping_charge: charge,
+      }
+    })
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md bg-gray-50 border border-slate-200 rounded-xl shadow-lg">
+        <DialogHeader>
+          <DialogTitle className="text-base font-bold text-slate-900">
+            Edit Shipping Configuration #{setting?.id}
+          </DialogTitle>
+          <DialogDescription className="text-sm text-slate-500">
+            Update free shipping minimum order requirements and standard delivery charges.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-5 py-2">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <Label className="text-sm font-bold text-slate-800">Enable Shipping Service</Label>
+              <p className="text-[10px] text-slate-400 mt-0.5">Toggle shipping capability across checkout.</p>
+            </div>
+            <Switch
+              checked={watch("shipping_enabled")}
+              onCheckedChange={(checked) => setValue("shipping_enabled", checked)}
+            />
+          </div>
+
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <Label className="text-sm font-bold text-slate-800">Enable Free Delivery Threshold</Label>
+              <p className="text-[10px] text-slate-400 mt-0.5">Waive shipping charge above minimum cart total.</p>
+            </div>
+            <Switch
+              checked={watch("free_delivery_enabled")}
+              onCheckedChange={(checked) => setValue("free_delivery_enabled", checked)}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-sm font-bold text-slate-700">Free Delivery Minimum Order Amount (₹)</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-2.5 text-sm text-slate-400 font-bold">₹</span>
+              <Input
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="600.00"
+                {...register("free_delivery_min_amount", { valueAsNumber: true })}
+                className="h-9 text-sm pl-7 bg-slate-50/50"
+              />
+            </div>
+            <p className="text-[10px] text-slate-400">Orders equal to or above this amount qualify for free shipping.</p>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-sm font-bold text-slate-700">Standard Shipping Charge (₹)</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-2.5 text-sm text-slate-400 font-bold">₹</span>
+              <Input
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="79.00"
+                {...register("shipping_charge", { valueAsNumber: true })}
+                className="h-9 text-sm pl-7 bg-slate-50/50"
+              />
+            </div>
+            <p className="text-[10px] text-slate-400">Flat shipping fee applied when order total is below free delivery threshold.</p>
+          </div>
+        </div>
+
+        <DialogFooter className="border-t border-slate-100 pt-4">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="h-8 text-sm font-bold border-slate-200">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleUpdate}
+            disabled={updateMutation.isPending}
+            className="bg-black hover:bg-black/90 text-white font-bold text-sm h-8 shadow-sm"
+          >
+            {updateMutation.isPending ? "Updating..." : "Update Configuration"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// ----------------------------------------------------------------------
+// 3. Main Shipping Settings Tab Component
+// ----------------------------------------------------------------------
+export function ShippingSettingsTab() {
+  const queryClient = useQueryClient()
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [editingSetting, setEditingSetting] = useState<any | null>(null)
 
   // Fetch all shipping settings with Axios
   const { data: settingsResponse, isLoading } = useQuery({
@@ -48,38 +345,19 @@ export function ShippingSettingsTab() {
   })
 
   const settings = settingsResponse?.settings || []
-  const activeSetting = settings.length > 0 ? settings[settings.length - 1] : null
 
-  // Create Mutation with Axios
-  const createMutation = useMutation({
+  // Create default fallback mutation for initialize defaults button
+  const createDefaultMutation = useMutation({
     mutationFn: async (payload: any) => {
       const response = await axios.post("/api/settings/shipping", payload)
       return response.data
     },
     onSuccess: () => {
-      toast.success("Shipping configuration created successfully!")
+      toast.success("Default shipping configuration initialized!")
       queryClient.invalidateQueries({ queryKey: ["settings-shipping"] })
-      closeModal()
     },
     onError: (err: any) => {
-      const msg = err.response?.data?.error || err.message || "Failed to create shipping settings"
-      toast.error(msg)
-    }
-  })
-
-  // Update Mutation with Axios
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, payload }: { id: number; payload: any }) => {
-      const response = await axios.put(`/api/settings/shipping/${id}`, payload)
-      return response.data
-    },
-    onSuccess: () => {
-      toast.success("Shipping configuration updated successfully!")
-      queryClient.invalidateQueries({ queryKey: ["settings-shipping"] })
-      closeModal()
-    },
-    onError: (err: any) => {
-      const msg = err.response?.data?.error || err.message || "Failed to update shipping settings"
+      const msg = err.response?.data?.error || err.message || "Failed to initialize default settings"
       toast.error(msg)
     }
   })
@@ -116,56 +394,6 @@ export function ShippingSettingsTab() {
     }
   })
 
-  const openCreateModal = () => {
-    setEditSetting(null)
-    reset(defaultFormValues)
-    setIsDialogOpen(true)
-  }
-
-  const openEditModal = (item: any) => {
-    setEditSetting(item)
-    reset({
-      shipping_enabled: item.shipping_enabled !== false,
-      free_delivery_enabled: item.free_delivery_enabled !== false,
-      free_delivery_min_amount: Number(item.free_delivery_min_amount ?? 600.00),
-      shipping_charge: Number(item.shipping_charge ?? 79.00),
-    })
-    setIsDialogOpen(true)
-  }
-
-  const closeModal = () => {
-    setIsDialogOpen(false)
-    setEditSetting(null)
-  }
-
-  const handleSave = () => {
-    const v = getValues()
-    const minAmount = Number(v.free_delivery_min_amount)
-    const charge = Number(v.shipping_charge)
-
-    if (isNaN(minAmount) || minAmount < 0) {
-      toast.error("Please enter a valid non-negative free delivery threshold amount!")
-      return
-    }
-    if (isNaN(charge) || charge < 0) {
-      toast.error("Please enter a valid non-negative shipping charge!")
-      return
-    }
-
-    const payload = {
-      shipping_enabled: v.shipping_enabled,
-      free_delivery_enabled: v.free_delivery_enabled,
-      free_delivery_min_amount: minAmount,
-      shipping_charge: charge,
-    }
-
-    if (editSetting) {
-      updateMutation.mutate({ id: editSetting.id, payload })
-    } else {
-      createMutation.mutate(payload)
-    }
-  }
-
   const handleDelete = (id: number) => {
     if (confirm(`Are you sure you want to delete shipping configuration #${id}?`)) {
       deleteMutation.mutate(id)
@@ -179,8 +407,6 @@ export function ShippingSettingsTab() {
 
   return (
     <div className="grid grid-cols-1 gap-6">
-
-
       {/* Main Table Card */}
       <Card className="shadow-sm border border-slate-200 rounded-xl bg-white">
         <CardHeader className="pb-4 border-b border-slate-100 flex flex-row items-center justify-between flex-wrap gap-4">
@@ -194,7 +420,7 @@ export function ShippingSettingsTab() {
             </CardDescription>
           </div>
           <Button
-            onClick={openCreateModal}
+            onClick={() => setIsCreateOpen(true)}
             className="text-xs font-bold text-white bg-black hover:bg-black/90 shadow-sm"
           >
             <PlusIcon className="h-4 w-4 mr-1.5" /> Add Configuration
@@ -205,13 +431,13 @@ export function ShippingSettingsTab() {
           <Table>
             <TableHeader className="bg-[#f8fafc]">
               <TableRow className="border-b border-slate-100 hover:bg-transparent">
-                <TableHead className="h-11 text-xs font-black text-slate-500  tracking-widest pl-6">ID</TableHead>
-                <TableHead className="h-11 text-xs font-black text-slate-500  tracking-widest">SHIPPING STATUS</TableHead>
-                <TableHead className="h-11 text-xs font-black text-slate-500  tracking-widest">FREE DELIVERY</TableHead>
-                <TableHead className="h-11 text-xs font-black text-slate-500  tracking-widest">MIN FREE ORDER</TableHead>
-                <TableHead className="h-11 text-xs font-black text-slate-500  tracking-widest">FLAT CHARGE</TableHead>
-                <TableHead className="h-11 text-xs font-black text-slate-500  tracking-widest">LAST UPDATED</TableHead>
-                <TableHead className="h-11 text-xs font-black text-slate-500  tracking-widest text-center pr-6">ACTIONS</TableHead>
+                <TableHead className="h-11 text-xs font-black text-slate-500 tracking-widest pl-6">ID</TableHead>
+                <TableHead className="h-11 text-xs font-black text-slate-500 tracking-widest">SHIPPING STATUS</TableHead>
+                <TableHead className="h-11 text-xs font-black text-slate-500 tracking-widest">FREE DELIVERY</TableHead>
+                <TableHead className="h-11 text-xs font-black text-slate-500 tracking-widest">MIN FREE ORDER</TableHead>
+                <TableHead className="h-11 text-xs font-black text-slate-500 tracking-widest">FLAT CHARGE</TableHead>
+                <TableHead className="h-11 text-xs font-black text-slate-500 tracking-widest">LAST UPDATED</TableHead>
+                <TableHead className="h-11 text-xs font-black text-slate-500 tracking-widest text-center pr-6">ACTIONS</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -231,8 +457,8 @@ export function ShippingSettingsTab() {
                         Create a shipping configuration profile or initialize standard storefront defaults.
                       </p>
                       <Button
-                        onClick={() => createMutation.mutate(defaultFormValues)}
-                        disabled={createMutation.isPending}
+                        onClick={() => createDefaultMutation.mutate(defaultFormValues)}
+                        disabled={createDefaultMutation.isPending}
                         className="text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
                       >
                         <ShieldCheck className="h-3.5 w-3.5 mr-1.5" /> Initialize Default Settings
@@ -270,7 +496,7 @@ export function ShippingSettingsTab() {
                           />
                           <Badge
                             variant="outline"
-                            className={`text-[9px] font-bold rounded px-1.5 py-0.5 uppercase tracking-wider ${item.shipping_enabled !== false
+                            className={`text-[9px] font-bold rounded px-1.5 py-0.5 capitalize tracking-wider ${item.shipping_enabled !== false
                               ? "text-emerald-600 bg-emerald-50 border-emerald-200"
                               : "text-slate-400 bg-slate-50 border-slate-200"
                               }`}
@@ -292,7 +518,7 @@ export function ShippingSettingsTab() {
                           />
                           <Badge
                             variant="outline"
-                            className={`text-[9px] font-bold rounded px-1.5 py-0.5 uppercase tracking-wider ${item.free_delivery_enabled !== false
+                            className={`text-[9px] font-bold rounded px-1.5 py-0.5 capitalize tracking-wider ${item.free_delivery_enabled !== false
                               ? "text-blue-600 bg-blue-50 border-blue-200"
                               : "text-slate-400 bg-slate-50 border-slate-200"
                               }`}
@@ -323,7 +549,7 @@ export function ShippingSettingsTab() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => openEditModal(item)}
+                            onClick={() => setEditingSetting(item)}
                             className="h-10 w-10 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
                           >
                             <Pencil className="h-4 w-4" />
@@ -348,88 +574,21 @@ export function ShippingSettingsTab() {
         </CardContent>
       </Card>
 
-      {/* Dialog Configuration Modal */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md bg-gray-50 border border-slate-200 rounded-xl shadow-lg">
-          <DialogHeader>
-            <DialogTitle className="text-base font-bold text-slate-900">
-              {editSetting ? "Edit Shipping Configuration" : "Add Shipping Configuration"}
-            </DialogTitle>
-            <DialogDescription className="text-sm text-slate-500">
-              Configure free shipping minimum order requirements and standard delivery charges.
-            </DialogDescription>
-          </DialogHeader>
+      {/* Create Shipping Dialog */}
+      <CreateShippingDialog
+        open={isCreateOpen}
+        onOpenChange={setIsCreateOpen}
+      />
 
-          <div className="space-y-5 py-2">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <Label className="text-sm font-bold text-slate-800">Enable Shipping Service</Label>
-                <p className="text-[10px] text-slate-400 mt-0.5">Toggle shipping capability across checkout.</p>
-              </div>
-              <Switch
-                checked={watch("shipping_enabled")}
-                onCheckedChange={(checked) => setValue("shipping_enabled", checked)}
-              />
-            </div>
-
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <Label className="text-sm font-bold text-slate-800">Enable Free Delivery Threshold</Label>
-                <p className="text-[10px] text-slate-400 mt-0.5">Waive shipping charge above minimum cart total.</p>
-              </div>
-              <Switch
-                checked={watch("free_delivery_enabled")}
-                onCheckedChange={(checked) => setValue("free_delivery_enabled", checked)}
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-sm font-bold text-slate-700">Free Delivery Minimum Order Amount (₹)</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-2.5 text-sm text-slate-400 font-bold">₹</span>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="600.00"
-                  {...register("free_delivery_min_amount", { valueAsNumber: true })}
-                  className="h-9 text-sm pl-7 bg-slate-50/50"
-                />
-              </div>
-              <p className="text-[10px] text-slate-400">Orders equal to or above this amount qualify for free shipping.</p>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-sm font-bold text-slate-700">Standard Shipping Charge (₹)</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-2.5 text-sm text-slate-400 font-bold">₹</span>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="79.00"
-                  {...register("shipping_charge", { valueAsNumber: true })}
-                  className="h-9 text-sm pl-7 bg-slate-50/50"
-                />
-              </div>
-              <p className="text-[10px] text-slate-400">Flat shipping fee applied when order total is below free delivery threshold.</p>
-            </div>
-          </div>
-
-          <DialogFooter className="border-t border-slate-100 pt-4">
-            <Button variant="outline" onClick={closeModal} className="h-8 text-sm font-bold border-slate-200">
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={createMutation.isPending || updateMutation.isPending}
-              className="bg-black hover:bg-black/90 text-white font-bold text-sm h-8 shadow-sm"
-            >
-              Save Configuration
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Edit Shipping Dialog */}
+      <EditShippingDialog
+        open={!!editingSetting}
+        onOpenChange={(open) => {
+          if (!open) setEditingSetting(null)
+        }}
+        setting={editingSetting}
+      />
     </div>
   )
 }
+

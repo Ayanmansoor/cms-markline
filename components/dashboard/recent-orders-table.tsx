@@ -55,11 +55,11 @@ export function RecentOrdersTable({ orders, onViewAllClick }: RecentOrdersTableP
           <Table>
             <TableHeader className="bg-[#f8fafc] border-y border-slate-100">
               <TableRow className="hover:bg-transparent border-none">
-                <TableHead className="text-[10px] font-bold text-slate-500 uppercase tracking-wider py-3.5 pl-6">Order ID</TableHead>
-                <TableHead className="text-[10px] font-bold text-slate-500 uppercase tracking-wider py-3.5">Product</TableHead>
-                <TableHead className="text-[10px] font-bold text-slate-500 uppercase tracking-wider py-3.5 text-right">Total</TableHead>
-                <TableHead className="text-[10px] font-bold text-slate-500 uppercase tracking-wider py-3.5 text-center">Status</TableHead>
-                <TableHead className="text-[10px] font-bold text-slate-500 uppercase tracking-wider py-3.5 text-center pr-6">Action</TableHead>
+                <TableHead className="text-xs font-semibold text-slate-600 py-3.5 pl-6">Order ID</TableHead>
+                <TableHead className="text-xs font-semibold text-slate-600 py-3.5">Product</TableHead>
+                <TableHead className="text-xs font-semibold text-slate-600 py-3.5 text-right">Total</TableHead>
+                <TableHead className="text-xs font-semibold text-slate-600 py-3.5 text-center">Status</TableHead>
+                <TableHead className="text-xs font-semibold text-slate-600 py-3.5 text-center pr-6">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -83,9 +83,9 @@ export function RecentOrdersTable({ orders, onViewAllClick }: RecentOrdersTableP
                       <TableCell className="font-semibold text-emerald-700 hover:underline py-4 pl-6 text-sm">
                         {order.id}
                       </TableCell>
-                      <TableCell className="py-4">
+                      <TableCell className="py-2">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200/80 shadow-xs shrink-0 overflow-hidden flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-sm bg-slate-100 border border-slate-200/80 shadow-xs shrink-0 overflow-hidden flex items-center justify-center">
                             {hasImage ? (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img

@@ -24,7 +24,7 @@ export const defaultSenderName = 'Markline Marketing'
 // Verify SMTP Connection
 transporter.verify((error, success) => {
   if (error) {
-    console.error('[Nodemailer SMTP Connection Error]:', error.message)
+    console.warn('[Nodemailer SMTP Notice]: Could not verify SMTP server on startup (DNS/Network:', error.message + ')')
   } else {
     console.log('[Nodemailer SMTP] Transporter connected successfully and ready to send emails.')
   }

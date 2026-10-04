@@ -1,25 +1,56 @@
 "use client"
 
+import React, { useState, Suspense } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import React from "react"
 import { BannersTab } from "../components/banners-tab"
+import { CategoryBannerHeader } from "../components/category-banner-header"
+import { useQueryClient } from "@tanstack/react-query"
 
-export default function CategoryBannerPage() {
+function CategoryBannerPageContent() {
+  const queryClient = useQueryClient()
+  const [isAddOpen, setIsAddOpen] = useState(false)
+  const [isFetching, setIsFetching] = useState(false)
+
+  const handleRefresh = async () => {
+    setIsFetching(true)
+    await queryClient.refetchQueries({ queryKey: ["collection-banners"] })
+    setIsFetching(false)
+  }
+
   return (
     <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className="bg-[#f4f7fb] flex flex-col h-screen overflow-hidden">
+      <AppSidebar variant="inset" />
+      <SidebarInset className="bg-white flex flex-col h-screen overflow-hidden">
         <SiteHeader />
-        <div className="flex-1 overflow-y-auto p-8">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">Category Banners</h1>
-            <p className="text-xs font-medium text-slate-500 mt-1">Configure promotional marketing slides targeting Desktop or Mobile interfaces.</p>
-          </div>
-          <BannersTab />
+        <div className="flex-1 overflow-y-auto p-7 space-y-1">
+          <CategoryBannerHeader
+            onRefresh={handleRefresh}
+            onAddOpen={() => setIsAddOpen(true)}
+            isFetching={isFetching}
+          />
+          <BannersTab
+            externalAddOpen={isAddOpen}
+            onExternalAddClose={() => setIsAddOpen(false)}
+          />
         </div>
       </SidebarInset>
     </SidebarProvider>
   )
 }
+
+export default function CategoryBannerPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen bg-white text-slate-500 font-semibold text-sm">
+          Loading category banners...
+        </div>
+      }
+    >
+      <CategoryBannerPageContent />
+    </Suspense>
+  )
+}
+

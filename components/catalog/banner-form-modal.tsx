@@ -149,7 +149,7 @@ export function BannerFormModal({
                   className="h-10 text-xs font-medium text-slate-900 bg-slate-50 border-slate-200 rounded-lg file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-900 file:text-white hover:file:bg-slate-800 transition-all cursor-pointer"
                 />
                 {bannerIsUploading && (
-                  <div className="text-xs font-medium text-blue-600 animate-pulse flex items-center gap-1.5">
+                  <div className="text-xs font-medium text-slate-900 animate-pulse flex items-center gap-1.5">
                     <Sparkles className="h-3.5 w-3.5" /> Uploading image file to server...
                   </div>
                 )}

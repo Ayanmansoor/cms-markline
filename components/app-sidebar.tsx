@@ -19,7 +19,7 @@ import { NavMain } from "./NavManu/NavMain"
 
 const navMain =
   [
-    { title: "Dashboard", href: "/dashboard", icon: LayoutDashboardIcon },
+    { title: "Dashboard", href: "/", icon: LayoutDashboardIcon },
     { title: "Products", href: "/products", icon: PackageIcon },
     {
       title: "Categories & Banner",
@@ -35,17 +35,28 @@ const navMain =
           title: "Collection Banners",
           href: "/category/banner",
         },
-        {
-          title: "Create Collection",
-          href: "/category/create",
-        },
       ],
     },
     { title: "Brands", href: "/brands", icon: TagsIcon },
     { title: "Customers", href: "/customers", icon: UsersIcon },
     { title: "Discounts", href: "/discounts", icon: PercentIcon },
     { title: "Coupons", href: "/coupon", icon: Ticket },
-    { title: "Banner & Video", href: "/banners", icon: MegaphoneIcon },
+    {
+      title: "Banner & Video",
+      href: "#",
+      icon: MegaphoneIcon,
+      isActive: true,
+      items: [
+        {
+          title: "Banner",
+          href: "/banners?tab=banners",
+        },
+        {
+          title: "Video",
+          href: "/banners?tab=videos",
+        },
+      ],
+    },
     {
       title: "Orders",
       href: "#",
@@ -119,7 +130,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton
               isActive={pathname === "/settings" && activeTab !== "product-groups"}
               asChild
-              className="text-slate-500 hover:text-slate-900 hover:bg-slate-50 data-[active=true]:text-slate-900 data-[active=true]:bg-slate-100 data-[active=true]:font-bold font-medium rounded-lg"
+              className="text-slate-500 hover:text-slate-900 hover:bg-slate-50 data-[active=true]:!text-white data-[active=true]:!bg-black data-[active=true]:!font-bold font-medium rounded-lg"
             >
               <a href="/settings">
                 <SettingsIcon className="!size-5" />
@@ -131,7 +142,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton
               isActive={pathname === "/helps"}
               asChild
-              className="text-slate-500 hover:text-slate-900 hover:bg-slate-50 data-[active=true]:text-slate-900 data-[active=true]:bg-slate-100 data-[active=true]:font-bold font-medium rounded-lg"
+              className="text-slate-500 hover:text-slate-900 hover:bg-slate-50 data-[active=true]:!text-white data-[active=true]:!bg-black data-[active=true]:!font-bold font-medium rounded-lg"
             >
               <a href="/helps">
                 <LifeBuoyIcon className="!size-5" />

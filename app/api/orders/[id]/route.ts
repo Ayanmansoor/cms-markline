@@ -5,18 +5,24 @@ import { createClient } from '@supabase/supabase-js'
 async function getSupabaseClient() {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (serviceRoleKey) {
-    return createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      serviceRoleKey,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
+    return {
+      supabase: createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        serviceRoleKey,
+        {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false
+          }
         }
-      }
-    )
+      ),
+      isAdmin: true
+    }
   }
-  return await createServerClient()
+  return {
+    supabase: await createServerClient(),
+    isAdmin: false
+  }
 }
 
 export async function GET(
@@ -25,7 +31,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const supabase = await getSupabaseClient()
+    const { supabase, isAdmin } = await getSupabaseClient()
 
     // 1. Fetch order with address relation
     const { data: order, error: orderError } = await supabase
@@ -101,23 +107,12 @@ export async function GET(
     })
 
     // 4. Fetch user from auth.users using service role key if available
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    let customerEmail = 'guest@shopmarkline.com'
+    let customerEmail = process.env.ADMIN_EMAIL || 'admin@markline.in'
     let customerName = order.address?.recipientName || 'Guest Customer'
 
-    if (serviceRoleKey && order.user_id) {
+    if (isAdmin && order.user_id) {
       try {
-        const supabaseAdmin = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          serviceRoleKey,
-          {
-            auth: {
-              autoRefreshToken: false,
-              persistSession: false
-            }
-          }
-        )
-        const { data: userData } = await supabaseAdmin.auth.admin.getUserById(order.user_id)
+        const { data: userData } = await supabase.auth.admin.getUserById(order.user_id)
         if (userData?.user) {
           customerEmail = userData.user.email || 'N/A'
           customerName = userData.user.user_metadata?.full_name || userData.user.user_metadata?.name || 'Customer'
@@ -138,6 +133,7 @@ export async function GET(
         customerEmail,
         userId: order.user_id,
         paymentStatus: order.payment_status || 'PENDING',
+        orderMode: order.order_mode || null,
         fulfillmentStatus: order.fulfillment_status || 'Pending',
         returnStatus: order.return_status || 'None',
         razorpayPaymentId: order.razorpay_payment_id || 'N/A',
@@ -199,7 +195,7 @@ export async function PUT(
 ) {
   try {
     const { id } = await params
-    const supabase = await getSupabaseClient()
+    const { supabase } = await getSupabaseClient()
     const body = await request.json()
 
     // Allow updating payment status, fulfillment status, return status, warehouse, admin note, cancel reason
@@ -242,3 +238,4 @@ export async function PUT(
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 })
   }
 }
+

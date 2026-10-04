@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient } from '@supabase/supabase-js'
+import { getShiprocketToken } from '@/lib/shiprocket'
 
 async function getSupabaseClient() {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -24,15 +25,10 @@ async function getSupabaseClient() {
 
 export async function GET() {
   try {
-    const cookieStore = await cookies()
-    let token = cookieStore.get('shiprocket_token')?.value
-
-    if (!token) {
-      throw new Error('No Shiprocket token found');
-    }
+    const token = await getShiprocketToken()
 
     // Call shiprocket courier list API
-    const courierRes = await fetch('https://apiv2.shiprocket.in/v1/external/courier/courierListWithCounts', {
+    const courierRes = await fetch(`${process.env.SHIPROCKET_API_URL}/courier/courierListWithCounts`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

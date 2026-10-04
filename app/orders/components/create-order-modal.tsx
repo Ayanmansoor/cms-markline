@@ -46,12 +46,14 @@ interface OrderFormState {
 
 interface CreateOrderModalProps {
   open: boolean
-  onOpenChange: (open: boolean) => void
+  onOpenChange?: (open: boolean) => void
+  onClose?: () => void
+  onSuccess?: () => void
 }
 
 import { Checkbox } from "@/components/ui/checkbox"
 
-export function CreateOrderModal({ open, onOpenChange }: CreateOrderModalProps) {
+export function CreateOrderModal({ open, onOpenChange, onClose, onSuccess }: CreateOrderModalProps) {
   const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState("")
   const [activeItemIndex, setActiveItemIndex] = useState<number | null>(null)
@@ -210,9 +212,11 @@ export function CreateOrderModal({ open, onOpenChange }: CreateOrderModalProps) 
       return res.json()
     },
     onSuccess: (data) => {
-      toast.success(`Order ${data.order.displayId} created successfully!`)
+      toast.success(`Order ${data.order.displayId || data.order.id} created successfully!`)
       queryClient.invalidateQueries({ queryKey: ["orders"] })
-      onOpenChange(false)
+      onOpenChange?.(false)
+      onClose?.()
+      onSuccess?.()
     },
     onError: (err: any) => {
       toast.error(err.message || "Failed to create order")
@@ -350,7 +354,7 @@ export function CreateOrderModal({ open, onOpenChange }: CreateOrderModalProps) 
                     form.addressId !== ""
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(val) => { onOpenChange?.(val); if (!val) onClose?.(); }}>
       <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto bg-white border border-slate-200 shadow-xl">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -363,7 +367,7 @@ export function CreateOrderModal({ open, onOpenChange }: CreateOrderModalProps) 
           {/* Customer Info */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="relative">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">
+              <label className="text-[10px] font-bold text-slate-500 capitalize tracking-wider mb-1.5 block">
                 Select Customer <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -426,7 +430,7 @@ export function CreateOrderModal({ open, onOpenChange }: CreateOrderModalProps) 
             </div>
 
             <div>
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">
+              <label className="text-[10px] font-bold text-slate-500 capitalize tracking-wider mb-1.5 block">
                 Shipping Address <span className="text-red-500">*</span>
               </label>
               {!form.userId ? (
@@ -460,7 +464,7 @@ export function CreateOrderModal({ open, onOpenChange }: CreateOrderModalProps) 
 
           {/* Add Products Section */}
           <Card className="border border-slate-200 bg-slate-50/50 p-4 rounded-xl">
-            <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2.5">
+            <h4 className="text-[10px] font-bold text-slate-500 capitalize tracking-wider mb-2.5">
               Add Products & Variants
             </h4>
             
@@ -524,7 +528,7 @@ export function CreateOrderModal({ open, onOpenChange }: CreateOrderModalProps) 
             {/* Checklist of Variants */}
             {selectedProductId && (
               <div className="mt-4 border-t border-slate-200 pt-4">
-                <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block mb-2">
+                <label className="text-[10px] font-bold text-slate-600 capitalize tracking-wider block mb-2">
                   Select Variants to Add
                 </label>
                 
@@ -600,7 +604,7 @@ export function CreateOrderModal({ open, onOpenChange }: CreateOrderModalProps) 
           {/* Order Items */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <h4 className="text-xs font-bold text-slate-500 capitalize tracking-wider">
                 Order Items ({form.items.length})
               </h4>
             </div>
@@ -649,7 +653,7 @@ export function CreateOrderModal({ open, onOpenChange }: CreateOrderModalProps) 
                         {/* Adjust item details */}
                         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 mt-2">
                           <div>
-                            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Color</label>
+                            <label className="text-[9px] font-bold text-slate-400 capitalize tracking-wider mb-1 block">Color</label>
                             <Input
                               value={item.color || ""}
                               onChange={(e) => updateItem(index, "color", e.target.value || null)}
@@ -658,7 +662,7 @@ export function CreateOrderModal({ open, onOpenChange }: CreateOrderModalProps) 
                             />
                           </div>
                           <div>
-                            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Size</label>
+                            <label className="text-[9px] font-bold text-slate-400 capitalize tracking-wider mb-1 block">Size</label>
                             <Input
                               value={item.size || ""}
                               onChange={(e) => updateItem(index, "size", e.target.value || null)}
@@ -667,7 +671,7 @@ export function CreateOrderModal({ open, onOpenChange }: CreateOrderModalProps) 
                             />
                           </div>
                           <div>
-                            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Qty</label>
+                            <label className="text-[9px] font-bold text-slate-400 capitalize tracking-wider mb-1 block">Qty</label>
                             <Input
                               type="number"
                               min="1"
@@ -677,7 +681,7 @@ export function CreateOrderModal({ open, onOpenChange }: CreateOrderModalProps) 
                             />
                           </div>
                           <div>
-                            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Unit Price</label>
+                            <label className="text-[9px] font-bold text-slate-400 capitalize tracking-wider mb-1 block">Unit Price</label>
                             <Input
                               type="number"
                               min="0"
@@ -688,7 +692,7 @@ export function CreateOrderModal({ open, onOpenChange }: CreateOrderModalProps) 
                             />
                           </div>
                           <div>
-                            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Discount</label>
+                            <label className="text-[9px] font-bold text-slate-400 capitalize tracking-wider mb-1 block">Discount</label>
                             <Input
                               type="number"
                               min="0"
@@ -715,7 +719,7 @@ export function CreateOrderModal({ open, onOpenChange }: CreateOrderModalProps) 
           {/* Payment & Shipping */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">
+              <label className="text-[10px] font-bold text-slate-500 capitalize tracking-wider mb-1.5 block">
                 Payment Status
               </label>
               <select
@@ -729,7 +733,7 @@ export function CreateOrderModal({ open, onOpenChange }: CreateOrderModalProps) 
               </select>
             </div>
             <div>
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">
+              <label className="text-[10px] font-bold text-slate-500 capitalize tracking-wider mb-1.5 block">
                 Payment Method
               </label>
               <select
@@ -744,7 +748,7 @@ export function CreateOrderModal({ open, onOpenChange }: CreateOrderModalProps) 
               </select>
             </div>
             <div>
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">
+              <label className="text-[10px] font-bold text-slate-500 capitalize tracking-wider mb-1.5 block">
                 Coupon Code
               </label>
               <Input
@@ -759,7 +763,7 @@ export function CreateOrderModal({ open, onOpenChange }: CreateOrderModalProps) 
           {/* Financial Adjustments */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">
+              <label className="text-[10px] font-bold text-slate-500 capitalize tracking-wider mb-1.5 block">
                 Shipping Charge
               </label>
               <Input
@@ -772,7 +776,7 @@ export function CreateOrderModal({ open, onOpenChange }: CreateOrderModalProps) 
               />
             </div>
             <div>
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">
+              <label className="text-[10px] font-bold text-slate-500 capitalize tracking-wider mb-1.5 block">
                 Tax Amount
               </label>
               <Input
@@ -785,7 +789,7 @@ export function CreateOrderModal({ open, onOpenChange }: CreateOrderModalProps) 
               />
             </div>
             <div>
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">
+              <label className="text-[10px] font-bold text-slate-500 capitalize tracking-wider mb-1.5 block">
                 Discount Amount
               </label>
               <Input
@@ -801,7 +805,7 @@ export function CreateOrderModal({ open, onOpenChange }: CreateOrderModalProps) 
 
           {/* Customer Note */}
           <div>
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">
+            <label className="text-[10px] font-bold text-slate-500 capitalize tracking-wider mb-1.5 block">
               Customer Note
             </label>
             <textarea
@@ -815,7 +819,7 @@ export function CreateOrderModal({ open, onOpenChange }: CreateOrderModalProps) 
           {/* Order Summary */}
           {form.items.length > 0 && (
             <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-              <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3">Order Summary</h4>
+              <h4 className="text-[10px] font-bold text-slate-500 capitalize tracking-wider mb-3">Order Summary</h4>
               <div className="space-y-2 text-xs font-medium">
                 <div className="flex justify-between">
                   <span className="text-slate-500">Subtotal ({form.items.length} items)</span>
@@ -855,7 +859,7 @@ export function CreateOrderModal({ open, onOpenChange }: CreateOrderModalProps) 
         <DialogFooter className="gap-2 border-t border-slate-100 pt-4">
           <Button
             variant="outline"
-            onClick={() => onOpenChange(false)}
+            onClick={() => { onOpenChange?.(false); onClose?.(); }}
             className="text-xs font-bold border-slate-200 text-slate-600 bg-white"
           >
             Cancel

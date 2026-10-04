@@ -18,10 +18,10 @@ export function UserAddressesTab({ addresses, renderEmptyState }: UserAddressesT
       <Table>
         <TableHeader className="bg-[#f8fafc]">
           <TableRow className="border-b border-slate-100 hover:bg-transparent">
-            <TableHead className="h-11 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Label</TableHead>
-            <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest">Recipient</TableHead>
-            <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest">Full Address</TableHead>
-            <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest">Location / Zip Code</TableHead>
+            <TableHead className="h-11 px-6 text-xs font-semibold text-slate-600">Label</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600">Recipient</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600">Full Address</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600">Location / Zip Code</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -32,7 +32,7 @@ export function UserAddressesTab({ addresses, renderEmptyState }: UserAddressesT
                   <MapPinIcon className="h-3.5 w-3.5 text-slate-400" />
                   <span className="text-xs font-bold text-slate-900">{addr.name || 'Address'}</span>
                   {addr.is_selected === 'true' && (
-                    <Badge variant="secondary" className="ml-2 text-[8px] font-bold bg-blue-100 text-blue-700 uppercase tracking-wider">Selected</Badge>
+                    <Badge variant="secondary" className="ml-2 text-[9px] font-bold bg-blue-100 text-blue-700">Selected</Badge>
                   )}
                 </div>
               </TableCell>

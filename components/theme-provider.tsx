@@ -14,83 +14,47 @@ const ThemeContext = React.createContext<ThemeContextValue | undefined>(undefine
 
 function ThemeProvider({
   children,
-  defaultTheme = "system",
+  defaultTheme = "light",
   storageKey = "theme",
 }: {
   children: React.ReactNode
   defaultTheme?: Theme
   storageKey?: string
 }) {
-  const [theme, setThemeState] = React.useState<Theme>(defaultTheme)
+  const [theme, setThemeState] = React.useState<Theme>("light")
   const [resolvedTheme, setResolvedTheme] = React.useState<"dark" | "light">("light")
 
-  const resolve = React.useCallback((t: Theme): "dark" | "light" => {
-    if (t === "dark" || t === "light") return t
-    if (typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      return "dark"
-    }
-    return "light"
-  }, [])
-
-  const applyTheme = React.useCallback(
-    (t: Theme) => {
-      const resolved = resolve(t)
+  const applyTheme = React.useCallback(() => {
+    if (typeof document !== "undefined") {
       const root = document.documentElement
-      root.classList.remove("light", "dark")
-      root.classList.add(resolved)
-      root.style.colorScheme = resolved
-      setResolvedTheme(resolved)
-    },
-    [resolve]
-  )
+      root.classList.remove("dark")
+      root.classList.add("light")
+      root.style.colorScheme = "light"
+    }
+    setResolvedTheme("light")
+  }, [])
 
   const setTheme = React.useCallback(
     (t: Theme) => {
-      setThemeState(t)
-      applyTheme(t)
+      setThemeState("light")
+      applyTheme()
       try {
-        localStorage.setItem(storageKey, t)
+        localStorage.setItem(storageKey, "light")
       } catch {}
     },
     [applyTheme, storageKey]
   )
 
   React.useEffect(() => {
+    setThemeState("light")
+    applyTheme()
     try {
-      const stored = localStorage.getItem(storageKey) as Theme | null
-      const initial = stored || defaultTheme
-      setThemeState(initial)
-      applyTheme(initial)
-    } catch {
-      applyTheme(defaultTheme)
-    }
-  }, [defaultTheme, storageKey, applyTheme])
-
-  React.useEffect(() => {
-    const mq = window.matchMedia("(prefers-color-scheme: dark)")
-    const handler = () => {
-      if (theme === "system") {
-        applyTheme("system")
-      }
-    }
-    mq.addEventListener("change", handler)
-    return () => mq.removeEventListener("change", handler)
-  }, [theme, applyTheme])
-
-  React.useEffect(() => {
-    const handler = (e: StorageEvent) => {
-      if (e.key === storageKey && e.newValue) {
-        const t = e.newValue as Theme
-        setThemeState(t)
-        applyTheme(t)
-      }
-    }
-    window.addEventListener("storage", handler)
-    return () => window.removeEventListener("storage", handler)
-  }, [storageKey, applyTheme])
+      localStorage.setItem(storageKey, "light")
+    } catch {}
+  }, [applyTheme, storageKey])
 
   return (
-    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme }}>
+    <ThemeContext.Provider value={{ theme: "light", resolvedTheme: "light", setTheme }}>
       {children}
     </ThemeContext.Provider>
   )

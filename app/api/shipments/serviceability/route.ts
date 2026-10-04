@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-
+import { getShiprocketToken } from '@/lib/shiprocket'
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
@@ -19,17 +19,17 @@ export async function GET(request: Request) {
       )
     }
 
-    const cookieStore = await cookies()
-    const token = cookieStore.get('shiprocket_token')?.value
-
-    if (!token) {
+    let token: string | null = null
+    try {
+      token = await getShiprocketToken()
+    } catch (error) {
       return NextResponse.json(
-        { error: 'No Shiprocket token found in cookies. Please authenticate in Settings.' },
+        { error: 'Failed to obtain Shiprocket token.' },
         { status: 401 }
       )
     }
 
-    let queryUrl = `https://apiv2.shiprocket.in/v1/external/courier/serviceability/?pickup_postcode=${encodeURIComponent(pickupPostcode)}&delivery_postcode=${encodeURIComponent(deliveryPostcode)}&weight=${encodeURIComponent(weight)}&cod=${encodeURIComponent(cod)}&is_return=${encodeURIComponent(isReturn)}&declared_value=${encodeURIComponent(declaredValue)}`
+    let queryUrl = `${process.env.SHIPROCKET_API_URL}/courier/serviceability/?pickup_postcode=${encodeURIComponent(pickupPostcode)}&delivery_postcode=${encodeURIComponent(deliveryPostcode)}&weight=${encodeURIComponent(weight)}&cod=${encodeURIComponent(cod)}&is_return=${encodeURIComponent(isReturn)}&declared_value=${encodeURIComponent(declaredValue)}`
 
     if (orderId) {
       queryUrl += `&order_id=${encodeURIComponent(orderId)}`

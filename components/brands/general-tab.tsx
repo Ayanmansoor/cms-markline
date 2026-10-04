@@ -3,6 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Switch } from "@/components/ui/switch"
 import { ChevronDownIcon, UploadCloud, TrashIcon } from "lucide-react"
 import dynamic from "next/dynamic"
 import React from "react"
@@ -32,6 +33,8 @@ export interface BrandGeneralTabProps {
   setSelectedFolder: (v: string) => void
   isFoldersLoading: boolean
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  isActive?: boolean
+  setIsActive?: (v: boolean) => void
 }
 
 export function BrandGeneralTab({
@@ -56,6 +59,8 @@ export function BrandGeneralTab({
   setSelectedFolder,
   isFoldersLoading,
   handleFileChange,
+  isActive = false,
+  setIsActive,
 }: BrandGeneralTabProps) {
 
   return (
@@ -168,7 +173,7 @@ export function BrandGeneralTab({
           {/* Logo Preview Block */}
           {imageUrl && (
             <div className="relative mt-2 p-3 border border-slate-200 rounded-lg bg-slate-50 flex flex-col items-center justify-center gap-2">
-              <span className="text-[10px] font-bold text-slate-400 uppercase self-start">Logo Preview</span>
+              <span className="text-[10px] font-bold text-slate-400 capitalize self-start">Logo Preview</span>
               <div className="relative max-w-[200px] max-h-[150px] border border-slate-200 rounded-md overflow-hidden bg-white shadow-xs">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -249,20 +254,38 @@ export function BrandGeneralTab({
       <div className="space-y-6">
         {/* Status Card */}
         <Card className="shadow-sm border border-slate-200 rounded-xl bg-white">
-          <CardContent className="p-5">
-            <div className="space-y-4 mb-5 border-b border-slate-100 pb-5">
-              <div className="flex justify-between items-center text-sm">
-                <span className="font-semibold text-slate-600">Status</span>
-                <span className="font-bold text-blue-700 flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-blue-600"></div> Draft
-                </span>
+          <CardContent className="p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-slate-900">Publish Status (`isActive`)</p>
+                <p className="text-[10px] text-slate-500 font-medium">
+                  {isActive ? "Brand is live on storefront" : "Saved as draft"}
+                </p>
               </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="font-semibold text-slate-600">Visibility</span>
-                <span className="font-bold text-slate-900">Public Storefront</span>
+              <div className="flex items-center gap-2">
+                {setIsActive && (
+                  <Switch
+                    checked={!!isActive}
+                    onCheckedChange={(checked) => setIsActive(checked)}
+                  />
+                )}
               </div>
             </div>
-            <Button variant="outline" disabled className="w-full font-semibold text-slate-700 border-slate-200 shadow-sm h-9">
+
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-600">Current Status:</span>
+              {isActive ? (
+                <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10.5px] font-bold capitalize rounded-full px-2.5 py-0.5 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Published
+                </span>
+              ) : (
+                <span className="bg-amber-50 text-amber-700 border border-amber-200 text-[10.5px] font-bold capitalize rounded-full px-2.5 py-0.5 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span> Draft
+                </span>
+              )}
+            </div>
+
+            <Button variant="outline" disabled className="w-full font-semibold text-slate-700 border-slate-200 shadow-sm h-9 mt-2">
               Preview Brand Page
             </Button>
           </CardContent>

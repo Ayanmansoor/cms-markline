@@ -49,7 +49,7 @@ export function NavMain({
             const currentSearch = typeof window !== "undefined" ? window.location.search : ""
             if (pathname === path) {
                 if (!currentSearch) {
-                    return search.includes("tab=collections")
+                    return search.includes("tab=collections") || search.includes("tab=banners")
                 }
                 return currentSearch.includes(search)
             }
@@ -83,7 +83,7 @@ export function NavMain({
                                         <SidebarMenuButton 
                                             tooltip={item.title}
                                             isActive={active}
-                                            className="text-slate-600 hover:!text-slate-900 hover:!bg-slate-100/80 data-[active=true]:!text-emerald-700 data-[active=true]:!bg-emerald-50/90 data-[active=true]:!font-bold font-medium rounded-lg transition-colors"
+                                            className="text-slate-600 hover:!text-slate-900 hover:!bg-slate-100/80 data-[active=true]:!text-white data-[active=true]:!bg-black data-[active=true]:!font-bold font-medium rounded-lg transition-colors"
                                         >
                                             {item.icon && <item.icon className="!size-5" />}
                                             <span className="ml-2">{item.title}</span>
@@ -101,7 +101,7 @@ export function NavMain({
                                                         <SidebarMenuSubButton 
                                                             asChild
                                                             isActive={isSubActive}
-                                                            className="text-slate-600 hover:!text-slate-900 hover:!bg-slate-100/80 data-[active=true]:!text-emerald-700 data-[active=true]:!bg-emerald-50/90 data-[active=true]:!font-bold font-medium rounded-lg transition-colors"
+                                                            className="text-slate-600 hover:!text-slate-900 hover:!bg-slate-100/80 data-[active=true]:!text-white data-[active=true]:!bg-black data-[active=true]:!font-bold font-medium rounded-lg transition-colors"
                                                         >
                                                             <a href={sub.href}>
                                                                 <span className="ml-2">{sub.title}</span>
@@ -119,7 +119,7 @@ export function NavMain({
                                 <SidebarMenuButton 
                                     asChild
                                     isActive={active}
-                                    className="text-slate-600 hover:!text-slate-900 hover:!bg-slate-100/80 data-[active=true]:!text-emerald-700 data-[active=true]:!bg-emerald-50/90 data-[active=true]:!font-bold font-medium rounded-lg transition-colors"
+                                    className="text-slate-600 hover:!text-slate-900 hover:!bg-slate-100/80 data-[active=true]:!text-white data-[active=true]:!bg-black data-[active=true]:!font-bold font-medium rounded-lg transition-colors"
                                 >
                                     <a href={item.href}>
                                         {item.icon && <item.icon className="!size-5" />}

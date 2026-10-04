@@ -22,15 +22,25 @@ export function TopSellingProducts({ products, onReportClick }: TopSellingProduc
     <Card className="md:col-span-2 shadow-xs border border-slate-200/80 rounded-2xl bg-white">
       <CardHeader className="py-6">
         <CardTitle className="text-lg font-bold text-[#0f172a] leading-tight">
-          Top Selling<br />Products
+          Top Selling Products
         </CardTitle>
       </CardHeader>
       <CardContent className="px-6">
-        <div className="space-y-6">
+        <div className="">
           {products.length === 0 ? (
-            <div className="py-8 text-center text-xs font-semibold text-slate-400">
-              No top products recorded yet.
-            </div>
+            <section className="py-2">
+              <div className=" text-center pb-3 text-xs font-semibold text-slate-400">
+                No top products recorded yet.
+              </div>
+
+              <Button
+                variant="outline"
+                onClick={onReportClick}
+                className="w-full font-bold text-slate-700 border-slate-200/80 shadow-xs rounded-xl hover:bg-slate-50"
+              >
+                Inventory Report
+              </Button>
+            </section>
           ) : (
             products.map((product, i) => (
               <div key={i} className="flex items-center justify-between">
@@ -62,15 +72,7 @@ export function TopSellingProducts({ products, onReportClick }: TopSellingProduc
           )}
         </div>
 
-        <div className="mt-8 pt-2">
-          <Button
-            variant="outline"
-            onClick={onReportClick}
-            className="w-full font-bold text-slate-700 border-slate-200/80 shadow-xs rounded-xl hover:bg-slate-50"
-          >
-            Inventory Report
-          </Button>
-        </div>
+
       </CardContent>
     </Card>
   )

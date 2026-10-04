@@ -201,7 +201,7 @@ export function GeneralTab({
 
             <div className="col-span-2 border-t border-slate-100 pt-4">
               <div className="mb-3">
-                <label className="text-[11px] font-bold text-slate-700 block uppercase tracking-wide">Materials Used</label>
+                <label className="text-[11px] font-bold text-slate-700 block capitalize tracking-wide">Materials Used</label>
                 <p className="text-[10px] font-medium text-slate-400 mt-0.5">Specify materials used for the product using the editor below.</p>
               </div>
               <div className="shadow-sm">
@@ -337,16 +337,6 @@ export function GeneralTab({
           </CardContent>
         </Card>
 
-        {/* Image Preview Mock */}
-        <Card className="shadow-sm border border-slate-200 rounded-2xl overflow-hidden bg-black text-white relative">
-          <div className="h-56 bg-gradient-to-br from-slate-800 to-black p-4 flex items-center justify-center">
-            <div className="w-48 h-32 bg-slate-700/50 rounded-lg transform -rotate-12 shadow-2xl border border-slate-600/50"></div>
-          </div>
-          <div className="p-4 bg-black/90 absolute bottom-0 left-0 right-0 border-t border-slate-800">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Preview</p>
-            <p className="font-bold text-white text-lg">{name || "Product Name"}</p>
-          </div>
-        </Card>
       </div>
     </div>
   )

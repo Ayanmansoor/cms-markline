@@ -203,13 +203,13 @@ export default function EditDiscountPage() {
 
   return (
     <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className="bg-[#f4f7fb] flex flex-col h-screen overflow-hidden">
+      <AppSidebar variant="inset" />
+      <SidebarInset className="bg-white flex flex-col h-screen overflow-hidden">
         <SiteHeader />
 
         <div className="flex-1 overflow-y-auto p-8">
 
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-8 w-full">
             <div>
               <div className="flex items-center text-xs text-slate-500 mb-1">
                 <span className="hover:text-slate-900 cursor-pointer" onClick={() => router.push("/discounts")}>Discounts</span>
@@ -231,7 +231,7 @@ export default function EditDiscountPage() {
                 type="button"
                 onClick={handleSave}
                 disabled={isPending}
-                className="px-4 py-2 text-sm font-bold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+                className="px-4 py-2 text-sm font-bold text-white bg-slate-900 rounded-md hover:bg-black transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {updateDiscountMutation.isPending ? "Saving..." : "Save Discount"}
               </button>
@@ -239,11 +239,11 @@ export default function EditDiscountPage() {
           </div>
 
           {isDiscountLoading ? (
-            <div className="text-sm font-medium text-slate-500 py-8 text-center bg-white border border-slate-200 rounded-xl shadow-sm">
+            <div className="text-sm font-medium text-slate-500 py-8 text-center bg-white border border-slate-200 rounded-xl shadow-sm w-full">
               Loading discount details...
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 w-full">
 
               {/* Left Column - Form Sections */}
               <div className="space-y-6">
@@ -297,27 +297,27 @@ export default function EditDiscountPage() {
                             onClick={() => setValue("discountType", "PERCENTAGE")}
                             className={`flex items-center gap-3 p-3 border-2 rounded-md cursor-pointer transition-all ${
                               discountType === "PERCENTAGE" 
-                                ? "border-blue-500 bg-blue-50/30" 
+                                ? "border-slate-900 bg-slate-50" 
                                 : "border-slate-200 hover:border-slate-300"
                             }`}
                           >
                             <div className={`w-4 h-4 rounded-full border bg-white flex items-center justify-center ${
-                              discountType === "PERCENTAGE" ? "border-blue-600 border-4" : "border-slate-300"
+                              discountType === "PERCENTAGE" ? "border-slate-900 border-4" : "border-slate-300"
                             }`}></div>
-                            <span className={`text-sm font-bold ${discountType === "PERCENTAGE" ? "text-blue-900" : "text-slate-700"}`}>Percentage</span>
+                            <span className={`text-sm font-bold ${discountType === "PERCENTAGE" ? "text-slate-900" : "text-slate-700"}`}>Percentage</span>
                           </div>
                           <div 
                             onClick={() => setValue("discountType", "FIXED_AMOUNT")}
                             className={`flex items-center gap-3 p-3 border-2 rounded-md cursor-pointer transition-all ${
                               discountType === "FIXED_AMOUNT" 
-                                ? "border-blue-500 bg-blue-50/30" 
+                                ? "border-slate-900 bg-slate-50" 
                                 : "border-slate-200 hover:border-slate-300"
                             }`}
                           >
                             <div className={`w-4 h-4 rounded-full border bg-white flex items-center justify-center ${
-                              discountType === "FIXED_AMOUNT" ? "border-blue-600 border-4" : "border-slate-300"
+                              discountType === "FIXED_AMOUNT" ? "border-slate-900 border-4" : "border-slate-300"
                             }`}></div>
-                            <span className={`text-sm font-bold ${discountType === "FIXED_AMOUNT" ? "text-blue-900" : "text-slate-700"}`}>Fixed Amount</span>
+                            <span className={`text-sm font-bold ${discountType === "FIXED_AMOUNT" ? "text-slate-900" : "text-slate-700"}`}>Fixed Amount</span>
                           </div>
                         </div>
                       </div>
@@ -353,7 +353,7 @@ export default function EditDiscountPage() {
                           id="min-requirements" 
                           checked={field.value}
                           onCheckedChange={field.onChange}
-                          className="!border-slate-400 !border data-[state=unchecked]:!bg-slate-500 data-[state=checked]:!bg-blue-600 shadow-sm"
+                          className="data-[state=checked]:bg-slate-900 data-[state=unchecked]:bg-slate-200"
                         />
                       )}
                     />
@@ -394,7 +394,7 @@ export default function EditDiscountPage() {
                           id="restrict-customer" 
                           checked={field.value}
                           onCheckedChange={field.onChange}
-                          className="!border-slate-400 !border data-[state=unchecked]:!bg-slate-500 data-[state=checked]:!bg-blue-600 shadow-sm"
+                          className="data-[state=checked]:bg-slate-900 data-[state=unchecked]:bg-slate-200"
                         />
                       )}
                     />
@@ -469,7 +469,7 @@ export default function EditDiscountPage() {
                             id="no-end-date" 
                             checked={field.value}
                             onCheckedChange={field.onChange}
-                            className="!border-slate-400 !border data-[state=unchecked]:!bg-slate-500 data-[state=checked]:!bg-blue-600 shadow-sm" 
+                            className="data-[state=checked]:bg-slate-900 data-[state=unchecked]:bg-slate-200" 
                           />
                         )}
                       />
@@ -494,7 +494,7 @@ export default function EditDiscountPage() {
                               id="limit-total" 
                               checked={field.value}
                               onCheckedChange={(checked) => field.onChange(checked === true)}
-                              className="rounded text-blue-600 border-slate-300" 
+                              className="rounded text-slate-900 border-slate-300 focus:ring-slate-900" 
                             />
                           )}
                         />
@@ -519,7 +519,7 @@ export default function EditDiscountPage() {
                             id="limit-per-customer" 
                             checked={field.value}
                             onCheckedChange={(checked) => field.onChange(checked === true)}
-                            className="rounded text-blue-600 border-slate-300" 
+                            className="rounded text-slate-900 border-slate-300 focus:ring-slate-900" 
                           />
                         )}
                       />
@@ -539,27 +539,12 @@ export default function EditDiscountPage() {
                     <h3 className="text-sm font-bold text-center">Storefront Preview</h3>
                   </div>
                   <CardContent className="p-0">
-                    <div className="p-5 border-b border-slate-100 flex justify-center">
-                      <div className="w-full aspect-square max-w-[220px] bg-gradient-to-b from-slate-800 to-black rounded-lg flex flex-col items-center justify-center text-white shadow-inner relative overflow-hidden">
-                        <div className="absolute inset-0 bg-black/10 mix-blend-overlay"></div>
-                        <h2 className="text-4xl font-black mb-1 z-10 drop-shadow-md">
-                          {discountType === "PERCENTAGE" ? `-${parsedVal}%` : `-₹${parsedVal}`}
-                        </h2>
-                        <p className="text-[10px] font-bold tracking-widest uppercase z-10 drop-shadow-md px-4 text-center">
-                          {name || "ACTIVE PROMOTIONAL DISCOUNT"}
-                        </p>
-                        <div className="w-24 h-8 mt-4 bg-white/20 rounded-full blur-xl absolute bottom-10 z-0"></div>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-16 h-16 mt-3 text-white/80 z-10 drop-shadow-md">
-                          <path d="M19 12l-2-2-5 3-4-2c-1.7 0-3 1.3-3 3v1h14l4-3z"></path>
-                        </svg>
-                      </div>
-                    </div>
                     <div className="p-5 space-y-3">
                       <div className="flex justify-between items-center text-xs font-semibold text-slate-500">
                         <span>Cart Subtotal</span>
                         <span className="text-slate-900">₹{subtotal.toFixed(2)}</span>
                       </div>
-                      <div className="flex justify-between items-center text-xs font-bold text-blue-600">
+                      <div className="flex justify-between items-center text-xs font-bold text-slate-900">
                         <span>Discount Applied</span>
                         <span>-₹{discountApplied.toFixed(2)}</span>
                       </div>
@@ -584,23 +569,23 @@ export default function EditDiscountPage() {
                     </h3>
                     <ul className="space-y-3">
                       <li className="flex items-start gap-2.5 text-[11px] font-semibold text-slate-600">
-                        <ClockIcon className="w-3.5 h-3.5 text-blue-500 mt-0.5 shrink-0" />
+                        <ClockIcon className="w-3.5 h-3.5 text-slate-500 mt-0.5 shrink-0" />
                         <span>Active from {formatDate(startDate)}</span>
                       </li>
                       <li className="flex items-start gap-2.5 text-[11px] font-semibold text-slate-600">
-                        <PercentIcon className="w-3.5 h-3.5 text-blue-500 mt-0.5 shrink-0" />
+                        <PercentIcon className="w-3.5 h-3.5 text-slate-500 mt-0.5 shrink-0" />
                         <span>{discountType === "PERCENTAGE" ? `${parsedVal}%` : `₹${parsedVal}`} off all products</span>
                       </li>
                       <li className="flex items-start gap-2.5 text-[11px] font-semibold text-slate-600">
-                        <CircleDollarSignIcon className="w-3.5 h-3.5 text-blue-500 mt-0.5 shrink-0" />
+                        <CircleDollarSignIcon className="w-3.5 h-3.5 text-slate-500 mt-0.5 shrink-0" />
                         <span>{isMinimumRequirement ? `Minimum purchase of ₹${parseFloat(minPurchase) || 0}` : "No minimum purchase requirement"}</span>
                       </li>
                       <li className="flex items-start gap-2.5 text-[11px] font-semibold text-slate-600">
-                        <TagIcon className="w-3.5 h-3.5 text-blue-500 mt-0.5 shrink-0" />
+                        <TagIcon className="w-3.5 h-3.5 text-slate-500 mt-0.5 shrink-0" />
                         <span>{limitTotal ? `Limited to ${maxUses} total uses` : "Unlimited total uses"}</span>
                       </li>
                       <li className="flex items-start gap-2.5 text-[11px] font-semibold text-slate-600">
-                        <UsersIcon className="w-3.5 h-3.5 text-blue-500 mt-0.5 shrink-0" />
+                        <UsersIcon className="w-3.5 h-3.5 text-slate-500 mt-0.5 shrink-0" />
                         <span>
                           {isRestricted && selectedUserId 
                             ? `Restricted to customer: ${customersList.find((c: any) => c.id === selectedUserId)?.name || selectedUserId}` 

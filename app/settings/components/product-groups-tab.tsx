@@ -240,7 +240,7 @@ export function ProductGroupsTab() {
         <Card className="shadow-sm border border-slate-200 bg-white animate-in fade-in zoom-in-95 duration-150">
           <CardContent className="p-6 flex items-center justify-between">
             <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Total Sections</p>
+              <p className="text-xs font-bold text-slate-400 tracking-wider mb-1.5">Total Sections</p>
               <h3 className="text-3xl font-black text-slate-900">{totalGroups}</h3>
             </div>
             <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl">
@@ -252,7 +252,7 @@ export function ProductGroupsTab() {
         <Card className="shadow-sm border border-slate-200 bg-white animate-in fade-in zoom-in-95 duration-150 delay-75">
           <CardContent className="p-6 flex items-center justify-between">
             <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Assigned Products</p>
+              <p className="text-xs font-bold text-slate-400 tracking-wider mb-1.5">Assigned Products</p>
               <h3 className="text-3xl font-black text-slate-900">{totalAssignedProducts}</h3>
             </div>
             <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl">
@@ -268,15 +268,15 @@ export function ProductGroupsTab() {
           <Table>
             <TableHeader className="bg-[#f8fafc] border-b border-slate-200">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="text-[10px] font-bold text-slate-500 uppercase tracking-wider py-4 pl-6">ID</TableHead>
-                <TableHead className="text-[10px] font-bold text-slate-500 uppercase tracking-wider py-4 text-center">Position</TableHead>
-                <TableHead className="text-[10px] font-bold text-slate-500 uppercase tracking-wider py-4">Heading / Title</TableHead>
-                <TableHead className="text-[10px] font-bold text-slate-500 uppercase tracking-wider py-4">Description</TableHead>
-                <TableHead className="text-[10px] font-bold text-slate-500 uppercase tracking-wider py-4 text-center">Collection Type</TableHead>
-                <TableHead className="text-[10px] font-bold text-slate-500 uppercase tracking-wider py-4 text-center">Product Count</TableHead>
-                <TableHead className="text-[10px] font-bold text-slate-500 uppercase tracking-wider py-4">URL Slug</TableHead>
-                <TableHead className="text-[10px] font-bold text-slate-500 uppercase tracking-wider py-4 text-center">Active</TableHead>
-                <TableHead className="text-[10px] font-bold text-slate-500 uppercase tracking-wider py-4 pr-6 text-center">Actions</TableHead>
+                <TableHead className="text-xs font-bold text-slate-500 tracking-wider py-4 pl-6">ID</TableHead>
+                <TableHead className="text-xs font-bold text-slate-500 tracking-wider py-4 text-center">Position</TableHead>
+                <TableHead className="text-xs font-bold text-slate-500 tracking-wider py-4">Heading / Title</TableHead>
+                <TableHead className="text-xs font-bold text-slate-500 tracking-wider py-4">Description</TableHead>
+                <TableHead className="text-xs font-bold text-slate-500 tracking-wider py-4 text-center">Collection Type</TableHead>
+                <TableHead className="text-xs font-bold text-slate-500 tracking-wider py-4 text-center">Product Count</TableHead>
+                <TableHead className="text-xs font-bold text-slate-500 tracking-wider py-4">URL Slug</TableHead>
+                <TableHead className="text-xs font-bold text-slate-500 tracking-wider py-4 text-center">Active</TableHead>
+                <TableHead className="text-xs font-bold text-slate-500 tracking-wider py-4 pr-6 text-center">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -313,7 +313,7 @@ export function ProductGroupsTab() {
                           ${group.type === 'ALL' ? 'bg-slate-100 text-slate-700 border-slate-200' : ''}
                           ${group.type === 'BEST_SELLER' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : ''}
                           ${group.type === 'CAMPAING' ? 'bg-blue-50 text-blue-600 border-blue-200' : ''}
-                          font-bold shadow-none rounded-md px-2.5 py-0.5 text-[10px] uppercase tracking-wide
+                          font-bold shadow-none rounded-md px-2.5 py-0.5 text-[10px] capitalize tracking-wide
                         `}>
                         {group.type}
                       </Badge>
@@ -410,11 +410,11 @@ export function ProductGroupsTab() {
               <Table>
                 <TableHeader className="bg-slate-50 border-b border-slate-200">
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="text-[10px] font-bold text-slate-500 uppercase tracking-wider py-3 pl-4">ID</TableHead>
-                    <TableHead className="text-[10px] font-bold text-slate-500 uppercase tracking-wider py-3">Product Name</TableHead>
-                    <TableHead className="text-[10px] font-bold text-slate-500 uppercase tracking-wider py-3">Brand</TableHead>
-                    <TableHead className="text-[10px] font-bold text-slate-500 uppercase tracking-wider py-3 text-center">Gender</TableHead>
-                    <TableHead className="text-[10px] font-bold text-slate-500 uppercase tracking-wider py-3">Slug</TableHead>
+                    <TableHead className="text-[10px] font-bold text-slate-500 capitalize tracking-wider py-3 pl-4">ID</TableHead>
+                    <TableHead className="text-[10px] font-bold text-slate-500 capitalize tracking-wider py-3">Product Name</TableHead>
+                    <TableHead className="text-[10px] font-bold text-slate-500 capitalize tracking-wider py-3">Brand</TableHead>
+                    <TableHead className="text-[10px] font-bold text-slate-500 capitalize tracking-wider py-3 text-center">Gender</TableHead>
+                    <TableHead className="text-[10px] font-bold text-slate-500 capitalize tracking-wider py-3">Slug</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -462,7 +462,7 @@ export function ProductGroupsTab() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-3">
             {/* Heading */}
             <div className="space-y-1.5 md:col-span-2">
-              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Group Heading / Title</Label>
+              <Label className="text-[10px] font-bold text-slate-500 capitalize tracking-widest block">Group Heading / Title</Label>
               <Input
                 {...register("heading")}
                 placeholder="e.g. Best Sellers"
@@ -472,7 +472,7 @@ export function ProductGroupsTab() {
 
             {/* Description */}
             <div className="space-y-1.5 md:col-span-2">
-              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Description</Label>
+              <Label className="text-[10px] font-bold text-slate-500 capitalize tracking-widest block">Description</Label>
               <Input
                 {...register("discription")}
                 placeholder="e.g. Most popular products of the season"
@@ -482,7 +482,7 @@ export function ProductGroupsTab() {
 
             {/* Collection Type (Select) */}
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Collection Type</Label>
+              <Label className="text-[10px] font-bold text-slate-500 capitalize tracking-widest block">Collection Type</Label>
               <select
                 {...register("type")}
                 className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 shadow-sm"
@@ -495,7 +495,7 @@ export function ProductGroupsTab() {
 
             {/* URL Slug */}
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">URL Slug</Label>
+              <Label className="text-[10px] font-bold text-slate-500 capitalize tracking-widest block">URL Slug</Label>
               <Input
                 {...register("url")}
                 placeholder="e.g. best-sellers"
@@ -505,7 +505,7 @@ export function ProductGroupsTab() {
 
             {/* URL Text Label */}
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">URL Label / Text</Label>
+              <Label className="text-[10px] font-bold text-slate-500 capitalize tracking-widest block">URL Label / Text</Label>
               <Input
                 {...register("urlText")}
                 placeholder="e.g. View All"
@@ -515,7 +515,7 @@ export function ProductGroupsTab() {
 
             {/* Position / Index */}
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Position / Index</Label>
+              <Label className="text-[10px] font-bold text-slate-500 capitalize tracking-widest block">Position / Index</Label>
               <Input
                 type="number"
                 {...register("index")}
@@ -527,7 +527,7 @@ export function ProductGroupsTab() {
             {/* Active Status Switch */}
             <div className="flex items-center justify-between py-3 border-t border-slate-100 mt-2 md:col-span-2">
               <div className="space-y-0.5">
-                <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Active Status</Label>
+                <Label className="text-[10px] font-bold text-slate-500 capitalize tracking-widest block">Active Status</Label>
                 <span className="text-[11px] text-slate-500">Enable this section on the homepage</span>
               </div>
               <Switch

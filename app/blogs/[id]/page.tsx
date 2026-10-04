@@ -368,16 +368,16 @@ export default function EditBlogPage() {
 
   return (
     <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className="bg-[#f4f7fb] flex flex-col h-screen overflow-hidden">
+      <AppSidebar variant="inset" />
+      <SidebarInset className="bg-white flex flex-col h-screen overflow-hidden">
         <SiteHeader />
 
         <div className="flex-1 overflow-y-auto p-8">
 
           {/* Page Header */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-6 w-full">
             <div>
-              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 mb-2">
+              <div className="text-[10px] font-bold text-slate-500 capitalize tracking-wider flex items-center gap-1.5 mb-2">
                 <span className="hover:text-slate-900 cursor-pointer" onClick={() => router.push("/blogs")}>Blogs</span>
                 <span className="text-slate-300">&gt;</span>
                 <span className="text-blue-600">Edit Post</span>
@@ -406,12 +406,12 @@ export default function EditBlogPage() {
           </div>
 
           {isBlogLoading ? (
-            <div className="text-sm font-medium text-slate-500 py-8 text-center bg-white border border-slate-200 rounded-xl shadow-sm">
+            <div className="text-sm font-medium text-slate-500 py-8 text-center bg-white border border-slate-200 rounded-xl shadow-sm w-full">
               Loading blog details...
             </div>
           ) : (
             <Tabs defaultValue="content" className="w-full">
-              <div className="border-b border-slate-200 mb-6">
+              <div className="border-b border-slate-200 mb-6 w-full">
                 <TabsList className="bg-transparent border-0 h-auto p-0 gap-8 justify-start rounded-none">
                   <TabsTrigger
                     value="content"
@@ -423,19 +423,19 @@ export default function EditBlogPage() {
                     value="media"
                     className="!bg-transparent !shadow-none data-[state=active]:!text-blue-700 data-[state=active]:!border-blue-600 border-b-2 border-transparent rounded-none px-1 py-3 text-sm font-semibold text-slate-500 hover:text-slate-700 transition-none"
                   >
-                    Media
+                    Media & Storage
                   </TabsTrigger>
                   <TabsTrigger
                     value="seo"
                     className="!bg-transparent !shadow-none data-[state=active]:!text-blue-700 data-[state=active]:!border-blue-600 border-b-2 border-transparent rounded-none px-1 py-3 text-sm font-semibold text-slate-500 hover:text-slate-700 transition-none"
                   >
-                    SEO
+                    SEO & Visibility
                   </TabsTrigger>
                 </TabsList>
               </div>
 
               {/* Content Tab */}
-              <TabsContent value="content" forceMount className="mt-0 outline-none data-[state=inactive]:hidden">
+              <TabsContent value="content" forceMount className="mt-0 outline-none data-[state=inactive]:hidden w-full">
                 <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
 
                   {/* Left Column - Main Content */}
@@ -445,7 +445,7 @@ export default function EditBlogPage() {
                     <Card className="shadow-sm border border-slate-200 rounded-xl bg-white">
                       <CardContent className="p-6 space-y-4">
                         <div>
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2">POST TITLE</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 capitalize tracking-widest block mb-2">Post Title</Label>
                           <Input
                             {...register("title")}
                             className="h-10 text-sm font-semibold border-slate-200 text-slate-900"
@@ -488,7 +488,7 @@ export default function EditBlogPage() {
                     {/* Rich Text Editor Card */}
                     <Card className="shadow-sm border border-slate-200 rounded-xl bg-white overflow-hidden">
                       <div className="p-3 border-b border-slate-100 flex justify-between items-center bg-white">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">BODY CONTENT</span>
+                        <span className="text-[10px] font-bold text-slate-500 capitalize tracking-widest">Body Content</span>
                         <span className="text-[11px] font-medium text-slate-500 ml-auto">
                           {content ? content.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length : 0} words
                         </span>
@@ -512,14 +512,14 @@ export default function EditBlogPage() {
                       <CardContent className="p-5">
                         <div className="flex items-center justify-between mb-5">
                           <h3 className="text-xs font-bold text-slate-900">Publishing</h3>
-                          <Badge variant="outline" className="text-[9px] font-bold text-blue-600 bg-blue-50 border-blue-200 uppercase tracking-wider rounded-md">
+                          <Badge variant="outline" className="text-[9px] font-bold text-blue-600 bg-blue-50 border-blue-200 capitalize tracking-wider rounded-md">
                             {status}
                           </Badge>
                         </div>
 
                         <div className="space-y-4">
                           <div className="space-y-1.5">
-                            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Status</Label>
+                            <Label className="text-[10px] font-bold text-slate-500 capitalize tracking-wider">Status</Label>
                             <Select
                               value={status}
                               onValueChange={(val: any) => setValue("status", val)}
@@ -543,7 +543,7 @@ export default function EditBlogPage() {
                     <Card className="shadow-sm border border-slate-200 rounded-xl bg-white">
                       <CardContent className="p-5">
                         <h3 className="text-xs font-bold text-slate-900 mb-4">Tags</h3>
-                        <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2">ADD TAGS</Label>
+                        <Label className="text-[10px] font-bold text-slate-500 capitalize tracking-widest block mb-2">Add Tags</Label>
 
                         {/* Tag chips + input inline */}
                         <div className="min-h-[38px] flex flex-wrap gap-1.5 items-center px-2.5 py-2 border border-slate-200 rounded-lg bg-slate-50 focus-within:bg-white focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-100 transition-all">
@@ -598,7 +598,7 @@ export default function EditBlogPage() {
 
               {/* Media Tab — Image Uploads */}
               <TabsContent value="media" forceMount className="mt-0 outline-none data-[state=inactive]:hidden">
-                <div className=" mx-auto space-y-6">
+                <div className="w-full space-y-6">
 
                   {/* GitHub Storage Directory */}
                   <div className="border border-slate-200 rounded-xl bg-white p-5 shadow-sm">
@@ -770,7 +770,7 @@ export default function EditBlogPage() {
 
               {/* SEO Tab */}
               <TabsContent value="seo" forceMount className="mt-0 outline-none data-[state=inactive]:hidden">
-                <div className="grid gap-6 md:grid-cols-3">
+                <div className="w-full grid gap-6 md:grid-cols-3">
 
                   {/* Left Column */}
                   <div className="md:col-span-2 space-y-6">
@@ -826,7 +826,7 @@ export default function EditBlogPage() {
                   <div className="space-y-6">
                     <Card className="shadow-sm border border-slate-200 rounded-2xl bg-[#f8fafc]">
                       <CardHeader className="py-3 px-4 flex flex-row items-center justify-between border-b border-slate-200 bg-white rounded-t-2xl">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Search Engine Preview</span>
+                        <span className="text-[10px] font-bold text-slate-500 capitalize tracking-wider">Search Engine Preview</span>
                         <div className="flex gap-2">
                           <MonitorIcon className="h-4 w-4 text-slate-400" />
                           <SmartphoneIcon className="h-4 w-4 text-slate-300" />
@@ -852,13 +852,13 @@ export default function EditBlogPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <Card className="shadow-sm border border-slate-200 rounded-2xl bg-white text-center p-4">
                         <p className="text-3xl font-black text-blue-600 mb-1">{seoScoreVal}</p>
-                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">SEO Score</p>
+                        <p className="text-[10px] font-bold text-slate-500 capitalize tracking-wider">SEO Score</p>
                       </Card>
                       <Card className="shadow-sm border border-emerald-200 rounded-2xl bg-white text-center p-4">
                         <p className="text-3xl font-black text-emerald-500 mb-1 flex items-center justify-center gap-1">
                           <span className="text-sm">✓</span>0
                         </p>
-                        <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Errors Found</p>
+                        <p className="text-[10px] font-bold text-emerald-500 capitalize tracking-wider">Errors Found</p>
                       </Card>
                     </div>
                   </div>

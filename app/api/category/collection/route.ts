@@ -22,16 +22,64 @@ async function getSupabaseClient() {
 export async function GET() {
   try {
     const supabase = await getSupabaseClient()
-    const { data: collections, error } = await supabase
+
+    // 1. Try querying collection with joined products to get accurate product counts
+    const { data: collectionsData, error } = await supabase
+      .from('collection')
+      .select('*, product(id)')
+      .order('id', { ascending: true })
+
+    if (!error && collectionsData) {
+      const collections = collectionsData.map((col: any) => ({
+        ...col,
+        productCount: Array.isArray(col.product) ? col.product.length : 0,
+      }))
+      return NextResponse.json({ success: true, collections })
+    }
+
+    // 2. Fallback: try with explicit foreign key `product!collection_key(id)`
+    const { data: collectionsFk, error: fkError } = await supabase
+      .from('collection')
+      .select('*, product!collection_key(id)')
+      .order('id', { ascending: true })
+
+    if (!fkError && collectionsFk) {
+      const collections = collectionsFk.map((col: any) => ({
+        ...col,
+        productCount: Array.isArray(col.product) ? col.product.length : 0,
+      }))
+      return NextResponse.json({ success: true, collections })
+    }
+
+    // 3. Fallback: select collections and map product collection_key counts in memory
+    const { data: rawCollections, error: rawError } = await supabase
       .from('collection')
       .select('*')
       .order('id', { ascending: true })
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
+    if (rawError) {
+      return NextResponse.json({ error: rawError.message }, { status: 400 })
     }
 
-    return NextResponse.json({ success: true, collections: collections || [] })
+    const { data: productCounts } = await supabase
+      .from('product')
+      .select('collection_key')
+
+    const countMap: Record<string | number, number> = {}
+    if (productCounts) {
+      for (const p of productCounts) {
+        if (p.collection_key !== null && p.collection_key !== undefined) {
+          countMap[p.collection_key] = (countMap[p.collection_key] || 0) + 1
+        }
+      }
+    }
+
+    const collections = (rawCollections || []).map((col: any) => ({
+      ...col,
+      productCount: countMap[col.id] || 0,
+    }))
+
+    return NextResponse.json({ success: true, collections })
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 })
   }

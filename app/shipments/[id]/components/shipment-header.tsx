@@ -7,7 +7,15 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Truck, Printer, FileText, Loader2 } from "lucide-react"
+import { ArrowLeft, Truck, Printer, FileText, Loader2, XCircle } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 interface ShipmentHeaderProps {
   shp: any
@@ -18,6 +26,8 @@ export function ShipmentHeader({ shp, onOpenCourierSheet }: ShipmentHeaderProps)
   const router = useRouter()
   const queryClient = useQueryClient()
   const [isScheduling, setIsScheduling] = useState(false)
+  const [isCancelOpen, setIsCancelOpen] = useState(false)
+  const [cancelReason, setCancelReason] = useState("")
 
   const schedulePickupMutation = useMutation({
     mutationFn: async () => {
@@ -48,18 +58,38 @@ export function ShipmentHeader({ shp, onOpenCourierSheet }: ShipmentHeaderProps)
     }
   })
 
+  const cancelOrderMutation = useMutation({
+    mutationFn: async (reason: string) => {
+      const res = await fetch(`/api/orders/${shp.orderId}/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cancelReason: reason })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Failed to cancel order")
+      return data
+    },
+    onSuccess: (data) => {
+      toast.success(data.message || "Order and shipment successfully cancelled.")
+      setIsCancelOpen(false)
+      queryClient.invalidateQueries({ queryKey: ["shipmentDetail", String(shp.id)] })
+      queryClient.invalidateQueries({ queryKey: ["order-shipments", String(shp.orderId)] })
+      queryClient.invalidateQueries({ queryKey: ["orders"] })
+    },
+    onError: (err: any) => toast.error(err.message || "Failed to cancel order")
+  })
+
   const handleSchedulePickup = () => {
     schedulePickupMutation.mutate()
   }
 
+  const isCancelled = shp.shipmentStatus === 'Cancelled'
+  const isHandedOver = ['Picked Up', 'In Transit', 'Reached Destination Hub', 'Out For Delivery', 'Delivered'].includes(shp.shipmentStatus)
+  const canCancel = !isCancelled && !isHandedOver
+
   const showScheduleButton = !!shp.awbCode &&
     !!shp.shipmentId &&
-    // !shp.pickupScheduledAt &&
     !['Pickup Scheduled', 'Picked Up', 'In Transit', 'Reached Destination Hub', 'Out For Delivery', 'Delivered', 'Cancelled'].includes(shp.shipmentStatus)
-
-
-  console.log(shp, "this is order shipment");
-
 
   return (
     <>
@@ -87,6 +117,11 @@ export function ShipmentHeader({ shp, onOpenCourierSheet }: ShipmentHeaderProps)
               <Badge className="text-[10px] font-extrabold bg-blue-100 text-blue-700 hover:bg-blue-100/90 border border-blue-200">
                 {shp.shipmentType}
               </Badge>
+              {isCancelled && (
+                <Badge className="text-[10px] font-extrabold bg-red-100 text-red-700 hover:bg-red-100/90 border border-red-200">
+                  Cancelled
+                </Badge>
+              )}
             </h1>
             <p className="text-slate-500 text-xs font-semibold mt-0.5">
               Linked to Order <Link href={`/orders/${shp.orderId}`} className="text-blue-600 font-bold hover:underline">{shp.displayOrderId}</Link>
@@ -96,10 +131,10 @@ export function ShipmentHeader({ shp, onOpenCourierSheet }: ShipmentHeaderProps)
 
         {/* Quick printable document downloads & Ship Now / Schedule Pickup buttons */}
         <div className="flex flex-wrap items-center gap-2">
-          {!shp.awbCode && (
+          {!shp.awbCode && !isCancelled && (
             <Button
               onClick={onOpenCourierSheet}
-              className="text-xs font-bold bg-[#4f46e5] hover:bg-[#4338ca] text-white shadow-sm"
+              className="h-8 text-xs font-bold bg-slate-900 hover:bg-black text-white shadow-2xs"
             >
               <Truck className="mr-1.5 h-3.5 w-3.5" /> Ship Now
             </Button>
@@ -109,7 +144,7 @@ export function ShipmentHeader({ shp, onOpenCourierSheet }: ShipmentHeaderProps)
             <Button
               onClick={handleSchedulePickup}
               disabled={isScheduling}
-              className="text-xs font-bold bg-[#16a34a] hover:bg-[#15803d] text-white shadow-sm"
+              className="h-8 text-xs font-bold bg-slate-900 hover:bg-black text-white shadow-2xs"
             >
               {isScheduling ? (
                 <>
@@ -124,22 +159,32 @@ export function ShipmentHeader({ shp, onOpenCourierSheet }: ShipmentHeaderProps)
             </Button>
           )}
 
+          {canCancel && (
+            <Button
+              onClick={() => setIsCancelOpen(true)}
+              variant="outline"
+              className="h-8 text-xs font-bold text-red-600 border-red-200 bg-red-50 hover:bg-red-100 shadow-2xs gap-1.5 cursor-pointer"
+            >
+              <XCircle className="h-3.5 w-3.5" /> Cancel Order & Shipment
+            </Button>
+          )}
+
           {shp.shippingLabelUrl && (
-            <Button asChild variant="outline" className="text-xs font-bold border-slate-200 text-slate-700 bg-white hover:bg-slate-50">
+            <Button asChild variant="outline" className="h-8 text-xs font-bold border-slate-200 text-slate-700 bg-white hover:bg-slate-50">
               <a href={shp.shippingLabelUrl} target="_blank" rel="noreferrer">
                 <Printer className="mr-1.5 h-3.5 w-3.5" /> Shipping Label
               </a>
             </Button>
           )}
           {shp.manifestUrl && (
-            <Button asChild variant="outline" className="text-xs font-bold border-slate-200 text-slate-700 bg-white hover:bg-slate-50">
+            <Button asChild variant="outline" className="h-8 text-xs font-bold border-slate-200 text-slate-700 bg-white hover:bg-slate-50">
               <a href={shp.manifestUrl} target="_blank" rel="noreferrer">
                 <FileText className="mr-1.5 h-3.5 w-3.5" /> Manifest PDF
               </a>
             </Button>
           )}
           {shp.invoiceUrl && (
-            <Button asChild variant="outline" className="text-xs font-bold border-slate-200 text-slate-700 bg-white hover:bg-slate-50">
+            <Button asChild variant="outline" className="h-8 text-xs font-bold border-slate-200 text-slate-700 bg-white hover:bg-slate-50">
               <a href={shp.invoiceUrl} target="_blank" rel="noreferrer">
                 <FileText className="mr-1.5 h-3.5 w-3.5" /> Commercial Invoice
               </a>
@@ -147,6 +192,46 @@ export function ShipmentHeader({ shp, onOpenCourierSheet }: ShipmentHeaderProps)
           )}
         </div>
       </div>
+
+      {/* Cancel Confirmation Dialog */}
+      <Dialog open={isCancelOpen} onOpenChange={setIsCancelOpen}>
+        <DialogContent className="sm:max-w-[440px] bg-white border border-slate-200 text-slate-900 shadow-xl rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold text-red-600 flex items-center gap-2">
+              <XCircle className="h-5 w-5" /> Cancel Order & Shipment?
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-600 font-medium mt-1.5 leading-relaxed">
+              This package has not been handed over to the courier yet. Cancelling will cancel the order in Shiprocket, cancel the AWB, and update the order & shipment status to Cancelled.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-3">
+            <label className="text-xs font-bold text-slate-700 block mb-1.5">Cancellation Reason (Optional)</label>
+            <textarea
+              value={cancelReason}
+              onChange={e => setCancelReason(e.target.value)}
+              placeholder="e.g. Customer requested cancellation before courier pickup..."
+              className="w-full h-20 p-3 text-xs font-medium text-slate-700 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-1 focus:ring-red-300 focus:border-red-400 resize-none"
+            />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsCancelOpen(false)}
+              className="text-xs font-bold border-slate-200 text-slate-700 rounded-xl cursor-pointer"
+            >
+              Keep Shipment
+            </Button>
+            <Button
+              onClick={() => cancelOrderMutation.mutate(cancelReason || "Cancelled by admin from shipment details")}
+              disabled={cancelOrderMutation.isPending}
+              className="text-xs font-bold bg-red-600 hover:bg-red-700 text-white gap-1.5 rounded-xl cursor-pointer"
+            >
+              {cancelOrderMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <XCircle className="h-3.5 w-3.5" />}
+              Confirm Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

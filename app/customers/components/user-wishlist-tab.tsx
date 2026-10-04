@@ -18,9 +18,9 @@ export function UserWishlistTab({ wishlist, formatCurrency, renderEmptyState }: 
       <Table>
         <TableHeader className="bg-[#f8fafc]">
           <TableRow className="border-b border-slate-100 hover:bg-transparent">
-            <TableHead className="h-11 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Product</TableHead>
-            <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest">Added On</TableHead>
-            <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right px-6">Price</TableHead>
+            <TableHead className="h-11 px-6 text-xs font-semibold text-slate-600">Product</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600">Added On</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600 text-right px-6">Price</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

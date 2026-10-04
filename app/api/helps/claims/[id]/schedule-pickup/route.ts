@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
+import { getShiprocketToken } from '@/lib/shiprocket'
 
 export async function POST(
   request: Request,
@@ -21,8 +22,12 @@ export async function POST(
       return NextResponse.json({ error: fetchError?.message || 'Claim not found' }, { status: 400 })
     }
 
-    const cookieStore = await cookies()
-    const token = cookieStore.get('shiprocket_token')?.value
+    let token: string | null = null
+    try {
+      token = await getShiprocketToken()
+    } catch (e) {
+      console.warn('Failed to obtain Shiprocket token')
+    }
 
     let shiprocketDetails = {
       shiprocket_order_id: `SR-RET-${Math.floor(100000 + Math.random() * 900000)}`,
@@ -85,7 +90,7 @@ export async function POST(
             weight: 0.5
           }
 
-          const orderRes = await fetch('https://apiv2.shiprocket.in/v1/external/orders/create/return', {
+          const orderRes = await fetch(`${process.env.SHIPROCKET_API_URL}/orders/create/return`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -101,7 +106,7 @@ export async function POST(
             isRealIntegration = true
 
             // Attempt to generate AWB/logistics
-            const awbRes = await fetch('https://apiv2.shiprocket.in/v1/external/courier/assign/awb', {
+            const awbRes = await fetch(`${process.env.SHIPROCKET_API_URL}/courier/assign/awb`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

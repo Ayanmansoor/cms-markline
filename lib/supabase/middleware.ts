@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server"
 
 export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname
-  const isPublicRoute = pathname === "/login" || pathname.startsWith("/api/auth")
+  const isPublicRoute = pathname === "/login" || pathname.startsWith("/api/")
 
   // Fast path: if visiting a public route (like /login) and no Supabase auth cookies exist,
   // skip external Supabase network calls and client initialization entirely.

@@ -23,6 +23,7 @@ export async function GET(request: Request) {
           .from('product')
           .select('*', { count: 'exact', head: true })
           .eq('grouptype', g.id)
+          
 
         return {
           id: g.id,

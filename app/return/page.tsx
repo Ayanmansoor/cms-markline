@@ -11,6 +11,14 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import {
   RotateCcw,
   Package,
   Search,
@@ -259,92 +267,92 @@ export default function ReturnShipmentsPage() {
 
   return (
     <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className="bg-[#f4f7fb]">
+      <AppSidebar variant="inset" />
+      <SidebarInset className="bg-white flex flex-col h-screen overflow-hidden">
         <SiteHeader />
-        <div className="flex flex-1 flex-col p-8 pt-6">
-
-          {/* Breadcrumbs */}
-          <div className="flex items-center text-sm text-slate-500 mb-4 font-medium">
-            <span className="hover:text-slate-900 cursor-pointer">Sales</span>
-            <span className="mx-2">{'>'}</span>
-            <span className="font-semibold text-slate-900">Return Shipments</span>
-          </div>
+        <div className="flex-1 overflow-y-auto p-8">
 
           {/* Heading */}
-          <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-[#0f172a] flex items-center gap-2">
-                <RotateCcw className="h-7 w-7 text-black" />
-                Return Shipments (Reverse Pickups)
+              <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">
+                Return Shipments
               </h1>
-              <p className="text-slate-500 text-xs font-semibold mt-1">
-                Process customer returns, reverse pickup courier dispatches, and track returned inventory.
-              </p>
+              <Breadcrumb className="mt-1.5">
+                <BreadcrumbList className="text-xs font-medium">
+                  <BreadcrumbItem>
+                    <BreadcrumbLink href="/orders">Sales</BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage className="font-semibold text-slate-900">Return Shipments</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
             </div>
             <div className="flex items-center gap-3">
               <Button
                 onClick={() => refetch()}
                 variant="outline"
-                className="text-xs font-bold border-slate-200 text-slate-700 bg-white hover:bg-slate-50"
+                className="bg-white hover:bg-slate-50 border border-slate-200/80 text-slate-700 text-xs font-semibold rounded-md px-3.5 h-9 shadow-2xs cursor-pointer"
               >
                 <RefreshCcw className="mr-2 h-3.5 w-3.5" /> Sync Returns
               </Button>
               <Button
                 onClick={() => setIsCreateModalOpen(true)}
-                className="text-xs font-bold bg-black text-white hover:bg-black/90 shadow-md"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9 px-4 rounded-md gap-2 shadow-xs cursor-pointer"
               >
-                <Plus className="mr-2 h-4 w-4" /> Create Return Shipment
+                <Plus className="h-4 w-4" /> Create Return Shipment
               </Button>
             </div>
           </div>
 
           {/* Top Level Metric Dashboard */}
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
-            <Card className="border-slate-200 bg-white shadow-sm">
+            <Card className="border border-slate-200/80 bg-white shadow-2xs rounded-xl">
               <CardContent className="p-4 flex items-center gap-4">
                 <div className="p-3 rounded-lg bg-indigo-50 text-indigo-700">
                   <RotateCcw className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Returns</p>
+                  <p className="text-[10px] font-bold text-slate-400 tracking-wider">Total Returns</p>
                   <p className="text-xl font-bold text-slate-900">{totalCount}</p>
                 </div>
               </CardContent>
             </Card>
-            <Card className="border-slate-200 bg-white shadow-sm">
+            <Card className="border border-slate-200/80 bg-white shadow-2xs rounded-xl">
               <CardContent className="p-4 flex items-center gap-4">
                 <div className="p-3 rounded-lg bg-amber-50 text-amber-600">
                   <Activity className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pickup Scheduled</p>
+                  <p className="text-[10px] font-bold text-slate-400 tracking-wider">Pickup Scheduled</p>
                   <p className="text-xl font-bold text-slate-900">
                     {shipmentsList.filter((s: any) => s.pickupStatus === 'Scheduled' || s.shipmentStatus === 'Pickup Scheduled').length}
                   </p>
                 </div>
               </CardContent>
             </Card>
-            <Card className="border-slate-200 bg-white shadow-sm">
+            <Card className="border border-slate-200/80 bg-white shadow-2xs rounded-xl">
               <CardContent className="p-4 flex items-center gap-4">
                 <div className="p-3 rounded-lg bg-purple-50 text-purple-600">
                   <Package className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">In Reverse Transit</p>
+                  <p className="text-[10px] font-bold text-slate-400 tracking-wider">In Reverse Transit</p>
                   <p className="text-xl font-bold text-slate-900">
                     {shipmentsList.filter((s: any) => s.shipmentStatus === 'In Transit').length}
                   </p>
                 </div>
               </CardContent>
             </Card>
-            <Card className="border-slate-200 bg-white shadow-sm">
+            <Card className="border border-slate-200/80 bg-white shadow-2xs rounded-xl">
               <CardContent className="p-4 flex items-center gap-4">
                 <div className="p-3 rounded-lg bg-emerald-50 text-emerald-600">
                   <CheckCircle2 className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Returned to Hub</p>
+                  <p className="text-[10px] font-bold text-slate-400 tracking-wider">Returned to Hub</p>
                   <p className="text-xl font-bold text-slate-900">
                     {shipmentsList.filter((s: any) => s.shipmentStatus === 'Delivered' || s.shipmentStatus === 'Returned To Warehouse').length}
                   </p>
@@ -353,24 +361,24 @@ export default function ReturnShipmentsPage() {
             </Card>
           </div>
 
-          {/* Filters card */}
-          <Card className="shadow-sm border border-slate-200 rounded-2xl bg-white mb-6">
-            <CardContent className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          {/* Unified Card with Header Toolbar & Table */}
+          <Card className="bg-white border border-slate-200/80 rounded-2xl shadow-xs overflow-hidden mb-6">
+            <div className="p-4 px-6 border-b border-slate-200/80 flex items-center justify-between flex-wrap gap-4">
               <div className="flex flex-wrap items-center gap-3 flex-1">
                 {/* Search query */}
                 <div className="relative w-full sm:w-64">
-                  <Search className="h-4 w-4 text-slate-400 absolute left-2.5 top-3" />
+                  <Search className="h-4 w-4 text-slate-400 absolute left-2.5 top-2.5" />
                   <Input
                     value={searchQuery}
                     onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
                     placeholder="AWB or Tracking Number..."
-                    className="pl-8 text-xs border-slate-200 bg-slate-50/50 !text-black h-9"
+                    className="pl-8 text-xs border-slate-200 bg-slate-50/50 !text-black h-9 rounded-lg"
                   />
                 </div>
 
                 {/* Status Filter */}
-                <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg h-9">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">Status:</span>
+                <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/80 px-3 py-1 rounded-lg h-9">
+                  <span className="text-[10px] font-bold text-slate-400">Status:</span>
                   <Select value={statusFilter} onValueChange={(val: any) => { setStatusFilter(val); setCurrentPage(1); }}>
                     <SelectTrigger className="border-0 bg-transparent p-0 h-auto shadow-none font-bold text-slate-900 focus-visible:ring-0 focus-visible:ring-offset-0 focus:ring-0 text-[11px] gap-1">
                       <SelectValue placeholder="All" />
@@ -391,19 +399,16 @@ export default function ReturnShipmentsPage() {
                 <Button
                   onClick={handleClearFilters}
                   variant="ghost"
-                  className="text-xs font-bold text-red-600 hover:text-red-700 self-end md:self-auto h-9"
+                  className="text-xs font-bold text-red-600 hover:text-red-700 h-9"
                 >
                   Clear Filters
                 </Button>
               )}
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Table list */}
-          <Card className="shadow-sm border border-slate-200 rounded-2xl bg-white overflow-hidden">
             {isLoading ? (
               <div className="py-24 text-center">
-                <Loader2 className="h-8 w-8 text-indigo-600 animate-spin mx-auto mb-3" />
+                <Loader2 className="h-8 w-8 text-blue-600 animate-spin mx-auto mb-3" />
                 <p className="text-xs font-semibold text-slate-500">Loading return shipments information...</p>
               </div>
             ) : shipmentsList.length === 0 ? (
@@ -412,25 +417,25 @@ export default function ReturnShipmentsPage() {
                 <p className="text-xs font-semibold text-slate-400">No return shipments found matching filters.</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-auto max-h-[calc(100vh-320px)] min-h-[350px] relative">
                 <Table>
-                  <TableHeader className="bg-slate-50/50">
-                    <TableRow className="border-b border-slate-100">
-                      <TableHead className="text-[10px] font-bold text-slate-400 uppercase tracking-wider py-4">Return ID</TableHead>
-                      <TableHead className="text-[10px] font-bold text-slate-400 uppercase tracking-wider py-4">Order ID</TableHead>
-                      <TableHead className="text-[10px] font-bold text-slate-400 uppercase tracking-wider py-4">Customer</TableHead>
-                      <TableHead className="text-[10px] font-bold text-slate-400 uppercase tracking-wider py-4">Courier & Reverse AWB</TableHead>
-                      <TableHead className="text-[10px] font-bold text-slate-400 uppercase tracking-wider py-4">Return Status</TableHead>
-                      <TableHead className="text-[10px] font-bold text-slate-400 uppercase tracking-wider py-4">Pickup Status</TableHead>
-                      <TableHead className="text-[10px] font-bold text-slate-400 uppercase tracking-wider py-4">Initiated Date</TableHead>
-                      <TableHead className="text-[10px] font-bold text-slate-400 uppercase tracking-wider py-4 text-right">Actions</TableHead>
+                  <TableHeader className="bg-slate-50">
+                    <TableRow className="hover:bg-transparent border-b border-slate-200/80">
+                      <TableHead className="sticky top-0 z-20 bg-slate-50 h-11 text-xs font-bold text-slate-500 tracking-wider border-b border-slate-200/80 shadow-2xs">Return ID</TableHead>
+                      <TableHead className="sticky top-0 z-20 bg-slate-50 h-11 text-xs font-bold text-slate-500 tracking-wider border-b border-slate-200/80 shadow-2xs">Order ID</TableHead>
+                      <TableHead className="sticky top-0 z-20 bg-slate-50 h-11 text-xs font-bold text-slate-500 tracking-wider border-b border-slate-200/80 shadow-2xs">Customer</TableHead>
+                      <TableHead className="sticky top-0 z-20 bg-slate-50 h-11 text-xs font-bold text-slate-500 tracking-wider border-b border-slate-200/80 shadow-2xs">Courier & Reverse AWB</TableHead>
+                      <TableHead className="sticky top-0 z-20 bg-slate-50 h-11 text-xs font-bold text-slate-500 tracking-wider border-b border-slate-200/80 shadow-2xs">Return Status</TableHead>
+                      <TableHead className="sticky top-0 z-20 bg-slate-50 h-11 text-xs font-bold text-slate-500 tracking-wider border-b border-slate-200/80 shadow-2xs">Pickup Status</TableHead>
+                      <TableHead className="sticky top-0 z-20 bg-slate-50 h-11 text-xs font-bold text-slate-500 tracking-wider border-b border-slate-200/80 shadow-2xs">Initiated Date</TableHead>
+                      <TableHead className="sticky top-0 z-20 bg-slate-50 h-11 text-xs font-bold text-slate-500 tracking-wider border-b border-slate-200/80 shadow-2xs text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {shipmentsList.map((shp: any) => {
                       const colors = getStatusStyles(shp.shipmentStatus)
                       return (
-                        <TableRow key={shp.id} className="hover:bg-slate-50/50 border-b border-slate-100 transition-colors">
+                        <TableRow key={shp.id} className="border-b border-slate-100 hover:bg-slate-50/60 transition-colors h-14">
                           <TableCell className="py-3.5 font-bold text-xs text-slate-900">
                             RET-{shp.id}
                           </TableCell>
@@ -438,7 +443,7 @@ export default function ReturnShipmentsPage() {
                           <TableCell className="py-3.5">
                             <Link
                               href={`/orders/${shp.orderId}`}
-                              className="text-xs font-bold text-indigo-600 hover:underline flex items-center gap-1"
+                              className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1"
                             >
                               {shp.displayOrderId}
                               <ExternalLink className="h-3 w-3" />
@@ -477,7 +482,7 @@ export default function ReturnShipmentsPage() {
                               asChild
                               variant="outline"
                               size="sm"
-                              className="h-8 text-xs font-bold border-slate-200 hover:bg-slate-50"
+                              className="h-8 text-xs font-semibold border-slate-200/80 hover:bg-slate-100 hover:text-slate-900 cursor-pointer"
                             >
                               <Link href={`/shipments/${shp.id}`}>
                                 View Details
@@ -493,7 +498,7 @@ export default function ReturnShipmentsPage() {
             )}
 
             {!isLoading && totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100">
+              <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200/80 bg-white">
                 <p className="text-xs font-semibold text-slate-500">
                   Showing return shipments {currentPage * limit - limit + 1} to {Math.min(currentPage * limit, totalCount)} of {totalCount}
                 </p>
@@ -503,7 +508,7 @@ export default function ReturnShipmentsPage() {
                     onClick={() => setCurrentPage(prev => prev - 1)}
                     variant="outline"
                     size="sm"
-                    className="h-8 text-xs font-bold border-slate-200"
+                    className="h-8 text-xs font-semibold border-slate-200/80 hover:bg-slate-100"
                   >
                     <ChevronLeft className="h-4 w-4 mr-1" /> Previous
                   </Button>
@@ -512,7 +517,7 @@ export default function ReturnShipmentsPage() {
                     onClick={() => setCurrentPage(prev => prev + 1)}
                     variant="outline"
                     size="sm"
-                    className="h-8 text-xs font-bold border-slate-200"
+                    className="h-8 text-xs font-semibold border-slate-200/80 hover:bg-slate-100"
                   >
                     Next <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
@@ -536,7 +541,7 @@ export default function ReturnShipmentsPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Order selection */}
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">
+                  <label className="text-[10px] font-bold text-slate-500 capitalize tracking-wider mb-1.5 block">
                     Select Order <span className="text-red-500">*</span>
                   </label>
                   {availableOrders.length === 0 ? (
@@ -564,7 +569,7 @@ export default function ReturnShipmentsPage() {
 
                 {/* Return Destination Warehouse */}
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">
+                  <label className="text-[10px] font-bold text-slate-500 capitalize tracking-wider mb-1.5 block">
                     Return Destination Warehouse
                   </label>
                   {warehousesList.length === 0 ? (
@@ -595,7 +600,7 @@ export default function ReturnShipmentsPage() {
               <div className="grid grid-cols-1 gap-4 border-t border-slate-100 pt-4">
                 <div className="relative">
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                    <label className="text-[10px] font-bold text-slate-500 capitalize tracking-wider block">
                       Reverse Courier Partner <span className="text-red-500">*</span>
                     </label>
                     {pickupPincode && deliveryPincode && serviceabilityResponse && (
@@ -715,12 +720,12 @@ export default function ReturnShipmentsPage() {
 
               {/* Dimensions */}
               <div>
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-2">
+                <label className="text-[10px] font-bold text-slate-500 capitalize tracking-wider block mb-2">
                   Return Package Metrics & Dimensions
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50/55 p-3 rounded-lg border border-slate-200">
                   <div>
-                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block">Weight (kg)</label>
+                    <label className="text-[9px] font-bold text-slate-400 capitalize mb-1 block">Weight (kg)</label>
                     <Input
                       type="number"
                       step="0.01"
@@ -731,7 +736,7 @@ export default function ReturnShipmentsPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block">Length (cm)</label>
+                    <label className="text-[9px] font-bold text-slate-400 capitalize mb-1 block">Length (cm)</label>
                     <Input
                       type="number"
                       step="0.1"
@@ -742,7 +747,7 @@ export default function ReturnShipmentsPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block">Breadth (cm)</label>
+                    <label className="text-[9px] font-bold text-slate-400 capitalize mb-1 block">Breadth (cm)</label>
                     <Input
                       type="number"
                       step="0.1"
@@ -753,7 +758,7 @@ export default function ReturnShipmentsPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block">Height (cm)</label>
+                    <label className="text-[9px] font-bold text-slate-400 capitalize mb-1 block">Height (cm)</label>
                     <Input
                       type="number"
                       step="0.1"
@@ -768,7 +773,7 @@ export default function ReturnShipmentsPage() {
 
               {/* Remarks */}
               <div>
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">
+                <label className="text-[10px] font-bold text-slate-500 capitalize tracking-wider mb-1.5 block">
                   Return Reason / Remarks
                 </label>
                 <textarea
@@ -790,7 +795,7 @@ export default function ReturnShipmentsPage() {
               <Button
                 disabled={!selectedOrderId || !selectedCourierName || createMutation.isPending}
                 onClick={handleSubmit(onSubmitCreateReturn)}
-                className="text-xs font-bold bg-black text-white hover:bg-black/90"
+                className="text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
               >
                 {createMutation.isPending ? (
                   <>

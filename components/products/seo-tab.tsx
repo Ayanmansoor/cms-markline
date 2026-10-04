@@ -119,7 +119,7 @@ export function SeoTab({
       <div className="space-y-6">
         <Card className="shadow-sm border border-slate-200 rounded-2xl bg-[#f8fafc]">
           <CardHeader className="py-3 px-4 flex flex-row items-center justify-between border-b border-slate-200 bg-white rounded-t-2xl">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Search Engine Preview</span>
+            <span className="text-[10px] font-bold text-slate-500 capitalize tracking-wider">Search Engine Preview</span>
             <div className="flex gap-2">
               <MonitorIcon className="h-4 w-4 text-slate-400" />
               <SmartphoneIcon className="h-4 w-4 text-slate-300" />

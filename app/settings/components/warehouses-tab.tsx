@@ -317,12 +317,12 @@ export function WarehousesTab() {
           <Table>
             <TableHeader className="bg-[#f8fafc]">
               <TableRow className="border-b border-slate-200 hover:bg-transparent">
-                <TableHead className="h-11 text-[9px] font-black text-slate-700 uppercase tracking-widest pl-6">WAREHOUSE NAME</TableHead>
-                <TableHead className="h-11 text-[9px] font-black text-slate-700 uppercase tracking-widest">CONTACT</TableHead>
-                <TableHead className="h-11 text-[9px] font-black text-slate-700 uppercase tracking-widest">LOCATION</TableHead>
-                <TableHead className="h-11 text-[9px] font-black text-slate-700 uppercase tracking-widest">DEFAULT</TableHead>
-                <TableHead className="h-11 text-[9px] font-black text-slate-700 uppercase tracking-widest">STATUS</TableHead>
-                <TableHead className="h-11 text-[9px] font-black text-slate-700 uppercase tracking-widest text-center pr-6">ACTIONS</TableHead>
+                <TableHead className="h-11 text-xs font-bold text-slate-700 tracking-wider pl-6">Warehouse Name</TableHead>
+                <TableHead className="h-11 text-xs font-bold text-slate-700 tracking-wider">Contact</TableHead>
+                <TableHead className="h-11 text-xs font-bold text-slate-700 tracking-wider">Location</TableHead>
+                <TableHead className="h-11 text-xs font-bold text-slate-700 tracking-wider">Default</TableHead>
+                <TableHead className="h-11 text-xs font-bold text-slate-700 tracking-wider">Status</TableHead>
+                <TableHead className="h-11 text-xs font-bold text-slate-700 tracking-wider text-center pr-6">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -397,7 +397,7 @@ export function WarehousesTab() {
                         /> */}
                         <Badge
                           variant="outline"
-                          className={`text-[9px] font-bold rounded px-1.5 py-0.5 uppercase tracking-wider ${wh.is_active
+                          className={`text-[9px] font-bold rounded px-1.5 py-0.5 capitalize tracking-wider ${wh.is_active
                             ? "text-green-600 bg-green-50 border-green-200"
                             : "text-slate-400 bg-slate-50 border-slate-200"
                             }`}
@@ -450,7 +450,7 @@ export function WarehousesTab() {
           <div className="space-y-5 py-2">
             {/* Basic Information */}
             <div>
-              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Basic Information</h4>
+              <h4 className="text-[10px] font-black text-slate-400 capitalize tracking-widest mb-3">Basic Information</h4>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs font-bold text-slate-700">Warehouse Name *</Label>
@@ -491,7 +491,7 @@ export function WarehousesTab() {
 
             {/* Address */}
             <div>
-              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Address</h4>
+              <h4 className="text-[10px] font-black text-slate-400 capitalize tracking-widest mb-3">Address</h4>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5 col-span-2">
                   <Label className="text-xs font-bold text-slate-700">Address Line 1 *</Label>
@@ -556,7 +556,7 @@ export function WarehousesTab() {
 
             {/* Geo & Tax */}
             <div>
-              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Location & Tax</h4>
+              <h4 className="text-[10px] font-black text-slate-400 capitalize tracking-widest mb-3">Location & Tax</h4>
               <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs font-bold text-slate-700">Latitude</Label>

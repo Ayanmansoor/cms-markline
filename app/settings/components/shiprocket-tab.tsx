@@ -202,14 +202,12 @@ export function ShiprocketTab() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 ">
+    <div className="grid grid-cols-1 gap-2 ">
       {/* Auto-Authenticate Card */}
       <Card className="shadow-sm border border-emerald-200 rounded-xl bg-gradient-to-br from-emerald-50/50 to-white">
-        <CardContent className="p-5 flex flex-row items-center justify-between gap-4">
+        <CardContent className=" flex flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-              <ShieldCheck className="h-5 w-5 text-emerald-600" />
-            </div>
+
             <div>
               <h3 className="text-sm font-bold text-slate-900">Auto-Authenticate</h3>
               <p className="text-xs text-slate-500">
@@ -244,12 +242,12 @@ export function ShiprocketTab() {
           <Table>
             <TableHeader className="bg-[#f8fafc]">
               <TableRow className="border-b border-slate-100 hover:bg-transparent">
-                <TableHead className="h-11 text-[9px] font-black text-slate-500 uppercase tracking-widest pl-6">TOKEN ID</TableHead>
-                <TableHead className="h-11 text-[9px] font-black text-slate-500 uppercase tracking-widest">TOKEN VALUE</TableHead>
-                <TableHead className="h-11 text-[9px] font-black text-slate-500 uppercase tracking-widest">EXPIRES AT</TableHead>
-                <TableHead className="h-11 text-[9px] font-black text-slate-500 uppercase tracking-widest">CREATED</TableHead>
-                <TableHead className="h-11 text-[9px] font-black text-slate-500 uppercase tracking-widest">VALIDITY</TableHead>
-                <TableHead className="h-11 text-[9px] font-black text-slate-500 uppercase tracking-widest text-center pr-6">ACTIONS</TableHead>
+                <TableHead className="h-11 text-xs font-bold text-slate-500 tracking-wider pl-6">Token ID</TableHead>
+                <TableHead className="h-11 text-xs font-bold text-slate-500 tracking-wider">Token Value</TableHead>
+                <TableHead className="h-11 text-xs font-bold text-slate-500 tracking-wider">Expires At</TableHead>
+                <TableHead className="h-11 text-xs font-bold text-slate-500 tracking-wider">Created</TableHead>
+                <TableHead className="h-11 text-xs font-bold text-slate-500 tracking-wider">Validity</TableHead>
+                <TableHead className="h-11 text-xs font-bold text-slate-500 tracking-wider text-center pr-6">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

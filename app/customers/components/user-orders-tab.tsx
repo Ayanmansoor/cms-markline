@@ -21,13 +21,13 @@ export function UserOrdersTab({ orders, formatCurrency, renderEmptyState }: User
       <Table>
         <TableHeader className="bg-[#f8fafc]">
           <TableRow className="border-b border-slate-100 hover:bg-transparent">
-            <TableHead className="h-11 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Order ID</TableHead>
-            <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest">Date</TableHead>
-            <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest">Product Details</TableHead>
-            <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Delivery</TableHead>
-            <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Payment</TableHead>
-            <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Items Qty</TableHead>
-            <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right px-6">Total Amount</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600 pl-6">Order ID</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600">Date</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600">Product Details</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600 text-center">Delivery</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600 text-center">Payment</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600 text-center">Items Qty</TableHead>
+            <TableHead className="h-11 text-xs font-semibold text-slate-600 text-right px-6">Total Amount</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

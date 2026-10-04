@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient } from '@supabase/supabase-js'
+import { parseImageUrl } from '@/lib/utils'
 
 const formatImageUrl = (raw: any): string => {
   if (!raw) return ''
@@ -89,8 +90,8 @@ export async function GET(request: Request) {
         }
 
         if (!firstItemImageMap.has(item.order_id)) {
-          const firstVariant = item.product?.product_variants?.[0]
-          const imgUrl = formatImageUrl(firstVariant?.image_url)
+          const rawImg = item.product?.image_url || item.product?.product_variants?.[0]?.image_url
+          const imgUrl = parseImageUrl(rawImg)
           if (imgUrl) {
             firstItemImageMap.set(item.order_id, imgUrl)
           }
@@ -207,6 +208,7 @@ export async function GET(request: Request) {
         fulfillment_color: fulfillmentColor,
         total: formattedTotal,
         grand_total: o.grand_total,
+        total_amount: o.grand_total,
         subtotal: o.subtotal,
         discount_amount: o.discount_amount,
         shipping_charge: o.shipping_charge,

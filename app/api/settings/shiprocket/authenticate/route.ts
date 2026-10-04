@@ -31,7 +31,7 @@ export async function POST() {
       )
     }
 
-    const authRes = await fetch('https://apiv2.shiprocket.in/v1/external/auth/login', {
+    const authRes = await fetch(`${process.env.SHIPROCKET_API_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })

@@ -353,8 +353,8 @@ export function RelationsPanel({
               </span>
             )}
           </h3>
-          <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2">
-            LINK PRODUCTS
+          <Label className="text-[10px] font-bold text-slate-500 capitalize tracking-widest block mb-2">
+            Link Products
           </Label>
           <ProductSelector selected={selectedProducts} onChange={onProductsChange} />
         </div>
@@ -371,8 +371,8 @@ export function RelationsPanel({
               </span>
             )}
           </h3>
-          <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2">
-            LINK BLOGS
+          <Label className="text-[10px] font-bold text-slate-500 capitalize tracking-widest block mb-2">
+            Link Blogs
           </Label>
           <BlogSelector
             selected={selectedBlogs}

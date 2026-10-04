@@ -21,6 +21,11 @@ export const categoryService = {
     return res.data
   },
 
+  updateCollectionStatus: async (id: string | number, is_show: boolean) => {
+    const res = await apiClient.put(`/api/category/collection/${id}`, { is_show })
+    return res.data
+  },
+
   deleteCollection: async (id: string | number) => {
     const res = await apiClient.delete(`/api/category/collection/${id}`)
     return res.data

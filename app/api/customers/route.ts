@@ -8,6 +8,15 @@ export async function GET(request: Request) {
     const page = searchParams.get('page') ? parseInt(searchParams.get('page')!) : 1
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 25
     const status = searchParams.get('status') || 'all' // all, active, inactive
+    
+    // Advanced Filter parameters
+    const search = searchParams.get('search') || ''
+    const hasOrdersParam = searchParams.get('hasOrders') || 'all' // all, yes, no
+    const hasCartParam = searchParams.get('hasCart') || 'all' // all, yes, no
+    const hasWishlistParam = searchParams.get('hasWishlist') || 'all' // all, yes, no
+    const hasReviewsParam = searchParams.get('hasReviews') || 'all' // all, yes, no
+    const hasAddressParam = searchParams.get('hasAddress') || 'all' // all, yes, no
+
     const from = (page - 1) * limit
     const to = from + limit - 1
 
@@ -24,6 +33,14 @@ export async function GET(request: Request) {
 
     const { data: reviews } = await supabase
       .from('reviews')
+      .select('user_id')
+
+    const { data: carts } = await supabase
+      .from('cart')
+      .select('user_id, variant_price, quantity')
+
+    const { data: addresses } = await supabase
+      .from('address')
       .select('user_id')
 
     // Fetch discounts using correct primary key 'discount_id'
@@ -61,6 +78,18 @@ export async function GET(request: Request) {
       reviewStats[r.user_id] = (reviewStats[r.user_id] || 0) + 1
     })
 
+    const cartStats: Record<string, number> = {}
+    carts?.forEach((c: any) => {
+      if (!c.user_id) return
+      cartStats[c.user_id] = (cartStats[c.user_id] || 0) + 1
+    })
+
+    const addressStats: Record<string, number> = {}
+    addresses?.forEach((a: any) => {
+      if (!a.user_id) return
+      addressStats[a.user_id] = (addressStats[a.user_id] || 0) + 1
+    })
+
     let usersList: any[] = []
     let isFallback = false
 
@@ -90,6 +119,8 @@ export async function GET(request: Request) {
         const stats = orderStats[userId] || { count: 0, ltv: 0 }
         const wishlistCount = wishlistStats[userId] || 0
         const reviewCount = reviewStats[userId] || 0
+        const cartCount = cartStats[userId] || 0
+        const addressCount = addressStats[userId] || 0
         
         // Extract discount key from raw user metadata
         const discountKey = u.raw_user_meta_data?.discount_key || u.user_metadata?.discount_key || null
@@ -103,29 +134,40 @@ export async function GET(request: Request) {
           orders: stats.count,
           wishlist: wishlistCount,
           reviews: reviewCount,
+          cartCount: cartCount,
+          addressCount: addressCount,
+          hasOrders: stats.count > 0,
+          hasCart: cartCount > 0,
+          hasWishlist: wishlistCount > 0,
+          hasReviews: reviewCount > 0,
+          hasAddress: addressCount > 0,
           ltv: stats.ltv,
           joined: u.created_at ? new Date(u.created_at).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
             day: '2-digit'
           }) : 'N/A',
-          isActive: stats.count > 0 || wishlistCount > 0,
+          isActive: stats.count > 0 || wishlistCount > 0 || cartCount > 0,
           discount: discountDetails
         }
       })
     } else {
-      // 3. Fallback: Aggregate unique user_ids from orders/wishlist/cart
+      // 3. Fallback: Aggregate unique user_ids from orders/wishlist/cart/address/reviews
       isFallback = true
       const uniqueUserIds = new Set<string>([
         ...Object.keys(orderStats),
         ...Object.keys(wishlistStats),
-        ...Object.keys(reviewStats)
+        ...Object.keys(reviewStats),
+        ...Object.keys(cartStats),
+        ...Object.keys(addressStats)
       ])
 
       usersList = Array.from(uniqueUserIds).map((userId, idx) => {
         const stats = orderStats[userId] || { count: 0, ltv: 0 }
         const wishlistCount = wishlistStats[userId] || 0
         const reviewCount = reviewStats[userId] || 0
+        const cartCount = cartStats[userId] || 0
+        const addressCount = addressStats[userId] || 0
 
         // Mock some discount assignments for guest view demonstration
         const mockDiscountKeys = Array.from(discountMap.keys())
@@ -140,9 +182,16 @@ export async function GET(request: Request) {
           orders: stats.count,
           wishlist: wishlistCount,
           reviews: reviewCount,
+          cartCount: cartCount,
+          addressCount: addressCount,
+          hasOrders: stats.count > 0,
+          hasCart: cartCount > 0,
+          hasWishlist: wishlistCount > 0,
+          hasReviews: reviewCount > 0,
+          hasAddress: addressCount > 0,
           ltv: stats.ltv,
           joined: 'N/A',
-          isActive: stats.count > 0 || wishlistCount > 0,
+          isActive: stats.count > 0 || wishlistCount > 0 || cartCount > 0,
           discount: discountDetails
         }
       })
@@ -151,9 +200,43 @@ export async function GET(request: Request) {
     // Filter by status (active vs inactive)
     let filteredUsers = usersList
     if (status === 'active') {
-      filteredUsers = usersList.filter(u => u.isActive)
+      filteredUsers = filteredUsers.filter(u => u.isActive)
     } else if (status === 'inactive') {
-      filteredUsers = usersList.filter(u => !u.isActive)
+      filteredUsers = filteredUsers.filter(u => !u.isActive)
+    }
+
+    // Apply Search filter
+    if (search.trim()) {
+      const q = search.trim().toLowerCase()
+      filteredUsers = filteredUsers.filter(u => 
+        u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+      )
+    }
+
+    // Apply Relational Advanced Filters
+    if (hasOrdersParam !== 'all') {
+      const target = hasOrdersParam === 'yes'
+      filteredUsers = filteredUsers.filter(u => u.hasOrders === target)
+    }
+
+    if (hasCartParam !== 'all') {
+      const target = hasCartParam === 'yes'
+      filteredUsers = filteredUsers.filter(u => u.hasCart === target)
+    }
+
+    if (hasWishlistParam !== 'all') {
+      const target = hasWishlistParam === 'yes'
+      filteredUsers = filteredUsers.filter(u => u.hasWishlist === target)
+    }
+
+    if (hasReviewsParam !== 'all') {
+      const target = hasReviewsParam === 'yes'
+      filteredUsers = filteredUsers.filter(u => u.hasReviews === target)
+    }
+
+    if (hasAddressParam !== 'all') {
+      const target = hasAddressParam === 'yes'
+      filteredUsers = filteredUsers.filter(u => u.hasAddress === target)
     }
 
     // Pagination
@@ -166,6 +249,14 @@ export async function GET(request: Request) {
     const activeCount = usersList.filter(u => u.isActive).length
     const activeRate = usersList.length > 0 ? (activeCount / usersList.length) * 100 : 0
 
+    let abandonedCartsAmount = 0
+    const abandonedCartsCount = carts?.length || 0
+    carts?.forEach((c: any) => {
+      const price = parseFloat(c.variant_price || '0')
+      const qty = parseInt(c.quantity || '1')
+      abandonedCartsAmount += price * (isNaN(qty) ? 1 : qty)
+    })
+
     return NextResponse.json({
       success: true,
       customers: paginatedUsers,
@@ -173,6 +264,10 @@ export async function GET(request: Request) {
       isFallback,
       metrics: {
         totalCustomers: usersList.length,
+        activeUsers: activeCount,
+        totalSales: totalSpentSum,
+        abandonedCartsCount,
+        abandonedCartsAmount,
         avgLtv,
         activeRate
       }

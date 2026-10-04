@@ -24,7 +24,13 @@ export default function CustomersPage() {
     }
   })
 
-  const metrics = metricsResponse?.metrics || { totalCustomers: 0, avgLtv: 0, activeRate: 0 }
+  const metrics = metricsResponse?.metrics || {
+    totalCustomers: 0,
+    activeUsers: 0,
+    totalSales: 0,
+    abandonedCartsCount: 0,
+    abandonedCartsAmount: 0
+  }
 
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat("en-IN", {
@@ -36,8 +42,8 @@ export default function CustomersPage() {
 
   return (
     <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className="bg-[#f4f7fb] flex flex-col h-screen overflow-hidden">
+      <AppSidebar variant="inset" />
+      <SidebarInset className="bg-white flex flex-col h-screen overflow-hidden">
         <SiteHeader />
 
         <div className="flex-1 overflow-y-auto p-8">
@@ -54,36 +60,40 @@ export default function CustomersPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <Card className="shadow-sm border border-slate-200 rounded-xl bg-white">
               <CardContent className="p-5">
-                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-3">Total Customers</p>
+                <p className="text-[9px] font-bold text-slate-500 capitalize tracking-wider mb-3">Active Users</p>
                 <div className="flex items-baseline gap-2">
                   <h3 className="text-2xl font-black text-slate-900">
-                    {isLoading ? "..." : metrics.totalCustomers.toLocaleString()}
+                    {isLoading ? "..." : (metrics.activeUsers ?? 0).toLocaleString()}
                   </h3>
-                  <span className="text-[11px] font-bold text-blue-600">Live</span>
+                  <span className="text-[11px] font-bold text-blue-600">
+                    {isLoading ? "" : `out of ${(metrics.totalCustomers || 0).toLocaleString()}`}
+                  </span>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="shadow-sm border border-slate-200 rounded-xl bg-white">
               <CardContent className="p-5">
-                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-3">Avg. LTV</p>
+                <p className="text-[9px] font-bold text-slate-500 capitalize tracking-wider mb-3">Total Sales</p>
                 <div className="flex items-baseline gap-2">
                   <h3 className="text-2xl font-black text-slate-900">
-                    {isLoading ? "..." : formatCurrency(metrics.avgLtv)}
+                    {isLoading ? "..." : formatCurrency(metrics.totalSales || 0)}
                   </h3>
-                  <span className="text-[11px] font-bold text-blue-600">Calculated</span>
+                  <span className="text-[11px] font-bold text-blue-600">Revenue</span>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="shadow-sm border border-slate-200 rounded-xl bg-white">
               <CardContent className="p-5">
-                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-3">Active Rate</p>
+                <p className="text-[9px] font-bold text-slate-500 capitalize tracking-wider mb-3">Abandoned Cart</p>
                 <div className="flex items-baseline gap-2">
                   <h3 className="text-2xl font-black text-slate-900">
-                    {isLoading ? "..." : `${Math.round(metrics.activeRate)}%`}
+                    {isLoading ? "..." : formatCurrency(metrics.abandonedCartsAmount || 0)}
                   </h3>
-                  <span className="text-[11px] font-bold text-blue-600">Engagement</span>
+                  <span className="text-[11px] font-bold text-blue-600">
+                    {isLoading ? "" : `${metrics.abandonedCartsCount || 0} Carts`}
+                  </span>
                 </div>
               </CardContent>
             </Card>

@@ -73,7 +73,7 @@ export function CartsTable() {
 
   const renderEmptyState = () => (
     <div className="flex flex-col items-center justify-center py-12 bg-white border border-slate-200 rounded-xl shadow-xs text-center">
-      <p className="text-slate-400 font-bold text-xs tracking-wider uppercase">data is not present</p>
+      <p className="text-slate-400 font-bold text-xs tracking-wider capitalize">Data is not present</p>
     </div>
   )
 
@@ -110,13 +110,13 @@ export function CartsTable() {
         <Table>
           <TableHeader className="bg-[#f8fafc]">
             <TableRow className="border-b border-slate-100 hover:bg-transparent">
-              <TableHead className="h-11 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Cart ID</TableHead>
-              <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest">Customer</TableHead>
-              <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest">Last Updated</TableHead>
-              <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest">Product Details</TableHead>
-              <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Qty</TableHead>
-              <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right px-6">Price</TableHead>
-              <TableHead className="h-11 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right px-6">Actions</TableHead>
+              <TableHead className="h-11 px-6 text-xs font-semibold text-slate-600">Cart ID</TableHead>
+              <TableHead className="h-11 text-xs font-semibold text-slate-600">Customer</TableHead>
+              <TableHead className="h-11 text-xs font-semibold text-slate-600">Last Updated</TableHead>
+              <TableHead className="h-11 text-xs font-semibold text-slate-600">Product Details</TableHead>
+              <TableHead className="h-11 text-xs font-semibold text-slate-600 text-center">Qty</TableHead>
+              <TableHead className="h-11 text-xs font-semibold text-slate-600 text-right px-6">Price</TableHead>
+              <TableHead className="h-11 text-xs font-semibold text-slate-600 text-right px-6">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

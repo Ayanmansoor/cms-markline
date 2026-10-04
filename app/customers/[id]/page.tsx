@@ -68,15 +68,15 @@ export default function CustomerDetailPage() {
 
   const renderEmptyState = () => (
     <div className="flex flex-col items-center justify-center py-12 bg-white border border-slate-200 rounded-xl shadow-xs text-center">
-      <p className="text-slate-400 font-bold text-xs tracking-wider uppercase">data is not present</p>
+      <p className="text-slate-400 font-bold text-xs tracking-wider capitalize">Data is not present</p>
     </div>
   )
 
   if (isLoading) {
     return (
       <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset className="bg-[#f4f7fb] flex flex-col h-screen justify-center items-center">
+        <AppSidebar variant="inset" />
+        <SidebarInset className="bg-white flex flex-col h-screen justify-center items-center">
           <div className="text-slate-500 font-semibold text-sm animate-pulse">Loading Customer Profile...</div>
         </SidebarInset>
       </SidebarProvider>
@@ -86,8 +86,8 @@ export default function CustomerDetailPage() {
   if (error) {
     return (
       <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset className="bg-[#f4f7fb] flex flex-col h-screen justify-center items-center">
+        <AppSidebar variant="inset" />
+        <SidebarInset className="bg-white flex flex-col h-screen justify-center items-center">
           <div className="text-red-500 font-semibold text-sm">Failed to load customer profile directory details.</div>
           <Button variant="outline" onClick={() => router.push("/customers")} className="mt-4 text-xs font-bold bg-white">
             Back to Directory
@@ -99,8 +99,8 @@ export default function CustomerDetailPage() {
 
   return (
     <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className="bg-[#f4f7fb] flex flex-col h-screen overflow-hidden">
+      <AppSidebar variant="inset" />
+      <SidebarInset className="bg-white flex flex-col h-screen overflow-hidden">
         <SiteHeader />
 
         <div className="flex-1 overflow-y-auto p-8">
@@ -116,7 +116,7 @@ export default function CustomerDetailPage() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Client Profile</span>
+              <span className="text-[10px] font-bold text-slate-400 capitalize tracking-widest">Client Profile</span>
               <h1 className="text-base font-bold text-slate-900 leading-tight">Customer Directory Details</h1>
             </div>
           </div>
@@ -140,7 +140,7 @@ export default function CustomerDetailPage() {
                   <div>
                     <div className="flex items-center gap-3 mb-1">
                       <h2 className="text-xl font-bold text-slate-900">{customer.name}</h2>
-                      <Badge variant="outline" className={`text-[9px] font-bold uppercase tracking-wider rounded px-1.5 py-0 ${badgeInfo.classes}`}>
+                      <Badge variant="outline" className={`text-[9px] font-bold capitalize tracking-wider rounded px-1.5 py-0 ${badgeInfo.classes}`}>
                         {badgeInfo.label}
                       </Badge>
                     </div>
@@ -160,21 +160,21 @@ export default function CustomerDetailPage() {
                 {/* Right Stats Section */}
                 <div className="flex gap-4">
                   <div className="bg-slate-50 border border-slate-100 rounded-lg p-4 min-w-[140px]">
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">TOTAL SPENT</p>
+                    <p className="text-[10px] font-bold text-slate-500 capitalize tracking-wider mb-2">Total Spent</p>
                     <h3 className="text-lg font-black text-slate-900 mb-1">{formatCurrency(metrics.totalSpent)}</h3>
                     <p className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 leading-none">
                       <TrendingUpIcon className="h-3 w-3" /> Lifetime LTV
                     </p>
                   </div>
                   <div className="bg-slate-50 border border-slate-100 rounded-lg p-4 min-w-[140px]">
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">TOTAL ORDERS</p>
+                    <p className="text-[10px] font-bold text-slate-500 capitalize tracking-wider mb-2">Total Orders</p>
                     <h3 className="text-lg font-black text-slate-900 mb-1">{metrics.totalOrdersCount}</h3>
                     <p className="text-[10px] font-semibold text-slate-500 leading-none">
                       Placed items
                     </p>
                   </div>
                   <div className="bg-slate-50 border border-slate-100 rounded-lg p-4 min-w-[140px]">
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">AOV</p>
+                    <p className="text-[10px] font-bold text-slate-500 capitalize tracking-wider mb-2">AOV</p>
                     <h3 className="text-lg font-black text-slate-900 mb-1">{formatCurrency(metrics.aov)}</h3>
                     <p className="text-[10px] font-semibold text-slate-500 leading-none">
                       Avg. order value

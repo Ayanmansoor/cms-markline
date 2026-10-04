@@ -38,8 +38,8 @@ export default function ShipmentDetailPage() {
   if (isLoading) {
     return (
       <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset className="bg-[#f4f7fb]">
+        <AppSidebar variant="inset" />
+        <SidebarInset className="bg-white">
           <SiteHeader />
           <div className="flex flex-1 items-center justify-center p-8">
             <div className="text-center">
@@ -55,8 +55,8 @@ export default function ShipmentDetailPage() {
   if (error || !shp) {
     return (
       <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset className="bg-[#f4f7fb]">
+        <AppSidebar variant="inset" />
+        <SidebarInset className="bg-white">
           <SiteHeader />
           <div className="flex flex-1 items-center justify-center p-8">
             <div className="text-center max-w-sm">
@@ -83,8 +83,8 @@ export default function ShipmentDetailPage() {
 
   return (
     <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className="bg-[#f4f7fb]">
+      <AppSidebar variant="inset" />
+      <SidebarInset className="bg-white">
         <SiteHeader />
         <div className="flex flex-1 flex-col p-8 pt-6">
 

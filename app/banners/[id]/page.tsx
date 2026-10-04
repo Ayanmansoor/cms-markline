@@ -257,14 +257,14 @@ export default function EditBannerPage() {
 
   return (
     <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className="bg-[#f4f7fb] flex flex-col h-screen overflow-hidden">
+      <AppSidebar variant="inset" />
+      <SidebarInset className="bg-white flex flex-col h-screen overflow-hidden">
         <SiteHeader />
 
         <div className="flex-1 overflow-y-auto p-8">
 
           {/* Page Header */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="w-full flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <Button 
                 variant="outline" 
@@ -275,7 +275,7 @@ export default function EditBannerPage() {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div>
-                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                <div className="text-[10px] font-bold text-slate-500 capitalize tracking-wider flex items-center gap-1.5 mb-1">
                   <span className="hover:text-slate-900 cursor-pointer" onClick={() => router.push("/banners")}>Banners</span>
                   <span className="text-slate-300">&gt;</span>
                   <span className="text-blue-600">Edit Banner</span>
@@ -313,11 +313,11 @@ export default function EditBannerPage() {
           </div>
 
           {isBannerLoading ? (
-            <div className="text-sm font-medium text-slate-500 py-8 text-center bg-white border border-slate-200 rounded-xl shadow-sm">
+            <div className="w-full text-sm font-medium text-slate-500 py-8 text-center bg-white border border-slate-200 rounded-xl shadow-sm">
               Loading banner details...
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
+            <div className="w-full grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
 
               {/* Left Column - Form Details */}
               <div className="space-y-6">
@@ -329,7 +329,7 @@ export default function EditBannerPage() {
                     
                     {/* Name */}
                     <div>
-                      <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2">BANNER NAME</Label>
+                      <Label className="text-[10px] font-bold text-slate-500 capitalize tracking-widest block mb-2">Banner Name</Label>
                       <Input
                         {...register("name")}
                         className="h-10 text-sm font-semibold border-slate-200 text-slate-900 focus-visible:ring-1"
@@ -339,7 +339,7 @@ export default function EditBannerPage() {
 
                     {/* Slug */}
                     <div>
-                      <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2">SLUG IDENTIFIER</Label>
+                      <Label className="text-[10px] font-bold text-slate-500 capitalize tracking-widest block mb-2">Slug Identifier</Label>
                       <div className="flex items-center gap-3">
                         <div className="flex items-center flex-1 bg-slate-50 rounded-md border border-slate-200 px-3 py-2">
                           <span className="text-xs text-slate-400 mr-1 select-none">banners/</span>
@@ -364,7 +364,7 @@ export default function EditBannerPage() {
 
                     {/* Image Upload/URL Toggle */}
                     <div className="space-y-4 pt-2">
-                      <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Banner Image Source</Label>
+                      <Label className="text-[10px] font-bold text-slate-500 capitalize tracking-widest block">Banner Image Source</Label>
                       
                       <div className="flex gap-2">
                         <button
@@ -468,7 +468,7 @@ export default function EditBannerPage() {
 
                     {/* Target Redirect URL */}
                     <div>
-                      <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2">TARGET REDIRECT URL (WHERE TO JUMP)</Label>
+                      <Label className="text-[10px] font-bold text-slate-500 capitalize tracking-widest block mb-2">Target Redirect URL (Where to Jump)</Label>
                       <div className="relative">
                         <LinkIcon className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                         <Input
@@ -513,7 +513,7 @@ export default function EditBannerPage() {
                   </CardHeader>
                   <CardContent className="p-5 space-y-4">
                     <div className="space-y-1.5">
-                      <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Device Type</Label>
+                      <Label className="text-[10px] font-bold text-slate-500 capitalize tracking-wider">Device Type</Label>
                       <Select 
                         value={isMobile ? "mobile" : "desktop"} 
                         onValueChange={(val) => setValue("isMobile", val === "mobile")}
@@ -533,8 +533,8 @@ export default function EditBannerPage() {
                 {/* Live Preview Widget */}
                 <Card className="shadow-sm border border-slate-200 rounded-xl bg-white overflow-hidden">
                   <CardHeader className="pb-3 border-b border-slate-100 flex flex-row items-center justify-between">
-                    <CardTitle className="text-xs font-bold text-slate-900 uppercase tracking-widest">LIVE MOCKUP PREVIEW</CardTitle>
-                    <Badge variant="outline" className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">
+                    <CardTitle className="text-xs font-bold text-slate-900 capitalize tracking-widest">Live Mockup Preview</CardTitle>
+                    <Badge variant="outline" className="text-[9px] font-bold text-slate-500 capitalize tracking-wider">
                       {isMobile ? "Mobile screen" : "Desktop screen"}
                     </Badge>
                   </CardHeader>
@@ -569,8 +569,8 @@ export default function EditBannerPage() {
                                   <span className="text-[8px] font-bold text-slate-500 leading-tight">No image URL specified</span>
                                 </div>
                               )}
-                              <div className="absolute bottom-2 left-2 bg-black/60 text-white text-[7px] font-black uppercase px-1 py-0.5 rounded">
-                                SHOP NOW
+                              <div className="absolute bottom-2 left-2 bg-black/60 text-white text-[7px] font-black capitalize px-1 py-0.5 rounded">
+                                Shop Now
                               </div>
                             </div>
                             
@@ -609,8 +609,8 @@ export default function EditBannerPage() {
                                 <span className="text-[8px] font-bold text-slate-500 leading-tight">No image URL specified</span>
                               </div>
                             )}
-                            <div className="absolute bottom-2 left-2 bg-black/60 text-white text-[7px] font-black uppercase px-1 py-0.5 rounded">
-                              EXPLORE COLLECTION
+                            <div className="absolute bottom-2 left-2 bg-black/60 text-white text-[7px] font-black capitalize px-1 py-0.5 rounded">
+                              Explore Collection
                             </div>
                           </div>
 
