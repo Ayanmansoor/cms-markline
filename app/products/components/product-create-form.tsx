@@ -81,22 +81,28 @@ export function ProductCreateForm() {
 
     const payload = {
       product: {
-        name,
-        slug,
+        name: name.trim(),
+        slug: slug.trim(),
         description,
         brand_id: brandKey ? Number(brandKey) : null,
+        brand_key: brandKey ? String(brandKey) : null,
         collection_id: collectionKey ? Number(collectionKey) : null,
+        collection_key: collectionKey ? Number(collectionKey) : null,
         gender: gender.toUpperCase(),
+        materials_used: materials,
         materials,
         is_limited_edition: isLimitedEdition,
         is_new_arrival: isNewArrival,
+        seoTitle,
         seo_title: seoTitle,
+        seoDescription,
         seo_description: seoDescription,
         grouptype: grouptype ? Number(grouptype) : null,
         is_active: isActive,
+        isActive,
         keywords,
-        amazon_url: amazonUrl,
-        flipkart_url: flipkartUrl,
+        amazon_url: amazonUrl ? amazonUrl.trim() : null,
+        flipkart_url: flipkartUrl ? flipkartUrl.trim() : null,
       },
       variants: variants.map((v) => {
         const unit = v.sizeUnit || "EU"
@@ -116,6 +122,7 @@ export function ProductCreateForm() {
           image_url: finalImageUrls,
           is_active: v.isActive !== false,
           discount_id: v.discountKey ? Number(v.discountKey) : null,
+          discount_key: v.discountKey ? Number(v.discountKey) : null,
         }
       }),
     }
