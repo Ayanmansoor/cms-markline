@@ -5,14 +5,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import { GeneralTab } from "@/components/products/general-tab"
 import { SeoTab } from "@/components/products/seo-tab"
-import { VariantsTab, Variant } from "@/components/products/variants-tab"
+import { VariantsTab, Variant, VariantImage, parseVariantImage } from "@/components/products/variants-tab"
+import { uploadService } from "@/services/upload.service"
 import { toast } from "sonner"
 
-import { formatVariantSizesForDb, formatVariantColorsForDb } from "./product-update-form"
+import { formatVariantSizesForDb, formatVariantColorsForDb, formatVariantImagesForDb } from "./product-update-form"
 
 export function ProductCreateForm() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+
+  // Target GitHub folder selection
+  const [selectedFolder, setSelectedFolder] = useState<string>("")
 
   // Form State
   const [name, setName] = useState("")
@@ -78,56 +82,89 @@ export function ProductCreateForm() {
     }
 
     setIsLoading(true)
+    const toastId = toast.loading("Processing variant images & creating product...")
 
-    const payload = {
-      product: {
-        name: name.trim(),
-        slug: slug.trim(),
-        description,
-        brand_id: brandKey ? Number(brandKey) : null,
-        brand_key: brandKey ? String(brandKey) : null,
-        collection_id: collectionKey ? Number(collectionKey) : null,
-        collection_key: collectionKey ? Number(collectionKey) : null,
-        gender: gender.toUpperCase(),
-        materials_used: materials,
-        materials,
-        is_limited_edition: isLimitedEdition,
-        is_new_arrival: isNewArrival,
-        seoTitle,
-        seo_title: seoTitle,
-        seoDescription,
-        seo_description: seoDescription,
-        grouptype: grouptype ? Number(grouptype) : null,
-        is_active: isActive,
-        isActive,
-        keywords,
-        amazon_url: amazonUrl ? amazonUrl.trim() : null,
-        flipkart_url: flipkartUrl ? flipkartUrl.trim() : null,
-      },
-      variants: variants.map((v) => {
+    try {
+      // 1. Process deferred file uploads sequentially for variant images to prevent GitHub concurrency conflicts
+      const processedVariants = []
+      for (const v of variants) {
+        const currentImages: VariantImage[] = (v.images && v.images.length > 0)
+          ? v.images
+          : (v.imageUrls || []).map((url) => parseVariantImage(url))
+
+        const updatedImages: VariantImage[] = []
+        for (const img of currentImages) {
+          if (img.file && (img.isNew || img.url.startsWith("blob:"))) {
+            try {
+              const uploadRes = await uploadService.uploadFile(img.file, selectedFolder)
+              if (img.url.startsWith("blob:")) {
+                URL.revokeObjectURL(img.url)
+              }
+              updatedImages.push({
+                id: img.id,
+                url: uploadRes.url,
+                name: img.name,
+                isNew: false,
+              })
+            } catch (err: any) {
+              toast.error(`Failed to upload ${img.name}: ${err.message}`)
+              updatedImages.push(img)
+            }
+          } else {
+            updatedImages.push(img)
+          }
+        }
+
+        const formattedImageUrls = formatVariantImagesForDb(updatedImages, v.colorName)
         const unit = v.sizeUnit || "EU"
         const formattedSizes = formatVariantSizesForDb(v.sizes, unit)
         const formattedColors = formatVariantColorsForDb(v.colorName, v.colorHex)
-        const finalImageUrls = (v.images || []).map((img: any) => typeof img === "string" ? img : img.url).filter(Boolean)
 
-        return {
+        processedVariants.push({
           sku: v.sku,
           mrp: Number(v.mrp) || 0,
           retail_price: Number(v.retail_price) || 0,
           stock: Number(v.stock) || 0,
           sizes: formattedSizes,
           color: v.colorName,
+          colorHex: v.colorHex,
           colors: formattedColors,
-          images: v.images,
-          image_url: finalImageUrls,
+          images: updatedImages,
+          image_url: formattedImageUrls,
           is_active: v.isActive !== false,
           discount_id: v.discountKey ? Number(v.discountKey) : null,
           discount_key: v.discountKey ? Number(v.discountKey) : null,
-        }
-      }),
-    }
+        })
+      }
 
-    try {
+      const payload = {
+        product: {
+          name: name.trim(),
+          slug: slug.trim(),
+          description,
+          brand_id: brandKey ? Number(brandKey) : null,
+          brand_key: brandKey ? String(brandKey) : null,
+          collection_id: collectionKey ? Number(collectionKey) : null,
+          collection_key: collectionKey ? Number(collectionKey) : null,
+          gender: gender.toUpperCase(),
+          materials_used: materials,
+          materials,
+          is_limited_edition: isLimitedEdition,
+          is_new_arrival: isNewArrival,
+          seoTitle,
+          seo_title: seoTitle,
+          seoDescription,
+          seo_description: seoDescription,
+          grouptype: grouptype ? Number(grouptype) : null,
+          is_active: isActive,
+          isActive,
+          keywords,
+          amazon_url: amazonUrl ? amazonUrl.trim() : null,
+          flipkart_url: flipkartUrl ? flipkartUrl.trim() : null,
+        },
+        variants: processedVariants,
+      }
+
       const res = await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -135,13 +172,13 @@ export function ProductCreateForm() {
       })
       const data = await res.json()
       if (res.ok && data.success) {
-        toast.success("Product created successfully")
+        toast.success("Product created successfully", { id: toastId })
         router.push("/products")
       } else {
-        toast.error(data.error || "Failed to create product")
+        toast.error(data.error || "Failed to create product", { id: toastId })
       }
     } catch (err: any) {
-      toast.error(err.message || "An error occurred while creating product")
+      toast.error(err.message || "An error occurred while creating product", { id: toastId })
     } finally {
       setIsLoading(false)
     }
@@ -217,6 +254,8 @@ export function ProductCreateForm() {
                 setVariants={setVariants}
                 productName={name}
                 discountsList={discounts}
+                selectedFolder={selectedFolder}
+                setSelectedFolder={setSelectedFolder}
               />
             </CardContent>
           </Card>
@@ -242,3 +281,4 @@ export function ProductCreateForm() {
     </div>
   )
 }
+

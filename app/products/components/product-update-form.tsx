@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Trash2 } from "lucide-react"
 import { GeneralTab } from "@/components/products/general-tab"
 import { SeoTab } from "@/components/products/seo-tab"
-import { VariantsTab, Variant, VariantImage } from "@/components/products/variants-tab"
+import { VariantsTab, Variant, VariantImage, parseVariantImage } from "@/components/products/variants-tab"
 import { uploadService } from "@/services/upload.service"
 import { toast } from "sonner"
 
@@ -139,6 +139,21 @@ export function formatVariantColorsForDb(colorName: string, colorHex?: string): 
     }),
   ]
 }
+
+// Utility to format variant images back into JSON string array for DB saving
+export function formatVariantImagesForDb(images: VariantImage[], colorName: string): string[] {
+  return (images || []).map((img) => {
+    const imgName = img.name || "image.png"
+    const color = colorName || "Default"
+    const url = img.url || ""
+    return JSON.stringify({
+      name: imgName,
+      color: color,
+      image_url: url,
+    })
+  })
+}
+
 
 // Utility to robustly parse variant images from string, array, or JSON objects
 export function parseVariantImagesFromData(raw: any): VariantImage[] {
@@ -351,60 +366,58 @@ export function ProductUpdateForm({ productId, initialData }: ProductUpdateFormP
     const toastId = toast.loading("Processing variant images & updating product...")
 
     try {
-      // 1. Process deferred file uploads sequentially for variant images
-      const processedVariants = await Promise.all(
-        variants.map(async (v) => {
-          const currentImages: VariantImage[] = (v.images && v.images.length > 0)
-            ? v.images
-            : (v.imageUrls || []).map((url) => ({ id: String(Math.random()), url, name: "image.png", isNew: false }))
+      // 1. Process deferred file uploads sequentially for variant images to prevent GitHub concurrency conflicts
+      const processedVariants = []
+      for (const v of variants) {
+        const currentImages: VariantImage[] = (v.images && v.images.length > 0)
+          ? v.images
+          : (v.imageUrls || []).map((url) => parseVariantImage(url))
 
-          const updatedImages = await Promise.all(
-            currentImages.map(async (img: VariantImage) => {
-              if (img.file && img.isNew) {
-                try {
-                  const uploadRes = await uploadService.uploadFile(img.file, selectedFolder)
-                  if (img.url.startsWith("blob:")) {
-                    URL.revokeObjectURL(img.url)
-                  }
-                  return {
-                    id: img.id,
-                    url: uploadRes.url,
-                    name: img.name,
-                    isNew: false,
-                  }
-                } catch (err: any) {
-                  toast.error(`Failed to upload ${img.name}: ${err.message}`)
-                  return img
-                }
+        const updatedImages: VariantImage[] = []
+        for (const img of currentImages) {
+          if (img.file && (img.isNew || img.url.startsWith("blob:"))) {
+            try {
+              const uploadRes = await uploadService.uploadFile(img.file, selectedFolder)
+              if (img.url.startsWith("blob:")) {
+                URL.revokeObjectURL(img.url)
               }
-              return img
-            })
-          )
-
-          const finalImageUrls = updatedImages.map((img) => img.url).filter(Boolean)
-
-          const unit = v.sizeUnit || "EU"
-          const formattedSizes = formatVariantSizesForDb(v.sizes, unit)
-          const formattedColors = formatVariantColorsForDb(v.colorName, v.colorHex)
-
-          return {
-            id: v.id,
-            sku: v.sku,
-            mrp: Number(v.mrp) || 0,
-            retail_price: Number(v.retail_price) || 0,
-            stock: Number(v.stock) || 0,
-            sizes: formattedSizes,
-            color: v.colorName,
-            colorHex: v.colorHex,
-            colors: formattedColors,
-            images: updatedImages,
-            image_url: finalImageUrls,
-            is_active: v.isActive !== false,
-            discount_id: v.discountKey ? Number(v.discountKey) : null,
-            discount_key: v.discountKey ? Number(v.discountKey) : null,
+              updatedImages.push({
+                id: img.id,
+                url: uploadRes.url,
+                name: img.name,
+                isNew: false,
+              })
+            } catch (err: any) {
+              toast.error(`Failed to upload ${img.name}: ${err.message}`)
+              updatedImages.push(img)
+            }
+          } else {
+            updatedImages.push(img)
           }
+        }
+
+        const finalImageUrls = formatVariantImagesForDb(updatedImages, v.colorName)
+        const unit = v.sizeUnit || "EU"
+        const formattedSizes = formatVariantSizesForDb(v.sizes, unit)
+        const formattedColors = formatVariantColorsForDb(v.colorName, v.colorHex)
+
+        processedVariants.push({
+          id: v.id,
+          sku: v.sku,
+          mrp: Number(v.mrp) || 0,
+          retail_price: Number(v.retail_price) || 0,
+          stock: Number(v.stock) || 0,
+          sizes: formattedSizes,
+          color: v.colorName,
+          colorHex: v.colorHex,
+          colors: formattedColors,
+          images: updatedImages,
+          image_url: finalImageUrls,
+          is_active: v.isActive !== false,
+          discount_id: v.discountKey ? Number(v.discountKey) : null,
+          discount_key: v.discountKey ? Number(v.discountKey) : null,
         })
-      )
+      }
 
       const payload = {
         productId,

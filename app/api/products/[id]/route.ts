@@ -95,6 +95,7 @@ export async function PUT(
       .eq('id', id)
 
     if (productError) {
+      console.error("Product update error:", productError)
       return NextResponse.json({ error: productError.message }, { status: 400 })
     }
 
@@ -122,22 +123,58 @@ export async function PUT(
         // Extract array of image URLs
         let finalImageUrls: string[] = []
         const rawImgs = v.image_url || v.images || v.imageUrls
-        if (Array.isArray(rawImgs)) {
-          finalImageUrls = rawImgs.map((img: any) => {
-            if (typeof img === 'string') return img
-            if (img && typeof img === 'object') return img.url || img.image_url || ""
-            return ""
-          }).filter(Boolean)
-        } else if (typeof rawImgs === 'string') {
-          try {
-            const parsed = JSON.parse(rawImgs)
-            if (Array.isArray(parsed)) {
-              finalImageUrls = parsed.map((img: any) => typeof img === 'string' ? img : (img?.url || img?.image_url || "")).filter(Boolean)
-            } else {
-              finalImageUrls = [rawImgs]
+        const variantColor = v.color || v.colorName || 'Default'
+
+        const formatSingleImg = (img: any): string => {
+          if (typeof img === 'string') {
+            const trimmed = img.trim()
+            if (!trimmed) return ''
+            if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+              try {
+                const parsed = JSON.parse(trimmed)
+                if (parsed && typeof parsed === 'object') {
+                  return JSON.stringify({
+                    name: parsed.name || 'image.png',
+                    color: parsed.color || variantColor,
+                    image_url: parsed.image_url || parsed.url || ''
+                  })
+                }
+              } catch {}
             }
-          } catch {
-            finalImageUrls = [rawImgs]
+            return JSON.stringify({
+              name: 'image.png',
+              color: variantColor,
+              image_url: trimmed
+            })
+          } else if (img && typeof img === 'object') {
+            const imgUrl = img.image_url || img.url || img.imageUrl || ''
+            if (!imgUrl) return ''
+            return JSON.stringify({
+              name: img.name || 'image.png',
+              color: img.color || variantColor,
+              image_url: imgUrl
+            })
+          }
+          return ''
+        }
+
+        if (Array.isArray(rawImgs)) {
+          finalImageUrls = rawImgs.map(formatSingleImg).filter(Boolean)
+        } else if (typeof rawImgs === 'string') {
+          const trimmed = rawImgs.trim()
+          if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+            try {
+              const parsedArr = JSON.parse(trimmed)
+              if (Array.isArray(parsedArr)) {
+                finalImageUrls = parsedArr.map(formatSingleImg).filter(Boolean)
+              } else {
+                finalImageUrls = [formatSingleImg(rawImgs)].filter(Boolean)
+              }
+            } catch {
+              finalImageUrls = [formatSingleImg(rawImgs)].filter(Boolean)
+            }
+          } else if (trimmed) {
+            finalImageUrls = [formatSingleImg(rawImgs)].filter(Boolean)
           }
         }
 
@@ -186,7 +223,6 @@ export async function PUT(
 
         const variantData = {
           sku: v.sku || null,
-          color: v.color || v.colorName || null,
           colors: finalColors,
           sizes: finalSizes,
           stock: v.stock !== undefined ? parseFloat(String(v.stock)) : null,
@@ -195,7 +231,11 @@ export async function PUT(
           discount_key: v.discount_key || v.discount_id || v.discountKey || null,
           mrp: v.mrp !== undefined ? parseFloat(String(v.mrp)) : null,
           retail_price: v.retail_price !== undefined ? parseFloat(String(v.retail_price)) : null,
-          price: v.retail_price !== undefined ? parseFloat(String(v.retail_price)) : null,
+          price: v.price !== undefined ? parseFloat(String(v.price)) : (v.retail_price !== undefined ? parseFloat(String(v.retail_price)) : null),
+          length: v.length !== undefined ? parseFloat(String(v.length)) : 0,
+          breadth: v.breadth !== undefined ? parseFloat(String(v.breadth)) : 0,
+          height: v.height !== undefined ? parseFloat(String(v.height)) : 0,
+          weight: v.weight !== undefined ? parseFloat(String(v.weight)) : 0,
           products_id: parseInt(id),
         }
 
@@ -209,6 +249,7 @@ export async function PUT(
             .eq('id', existing.id)
 
           if (updateVarErr) {
+            console.error("Failed to update variant error:", updateVarErr)
             return NextResponse.json({ error: `Failed to update variant ${existing.sku || existing.id}: ${updateVarErr.message}` }, { status: 400 })
           }
         } else {
@@ -217,6 +258,7 @@ export async function PUT(
             .insert(variantData)
 
           if (insertVarErr) {
+            console.error("Failed to insert variant error:", insertVarErr)
             return NextResponse.json({ error: `Failed to save new variant ${v.sku || ''}: ${insertVarErr.message}` }, { status: 400 })
           }
         }

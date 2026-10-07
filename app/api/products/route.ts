@@ -166,22 +166,58 @@ export async function POST(request: Request) {
       const variantsToInsert = variantsPayload.map((v: any) => {
         let finalImageUrls: string[] = []
         const rawImgs = v.image_url || v.images || v.imageUrls
-        if (Array.isArray(rawImgs)) {
-          finalImageUrls = rawImgs.map((img: any) => {
-            if (typeof img === 'string') return img
-            if (img && typeof img === 'object') return img.url || img.image_url || ""
-            return ""
-          }).filter(Boolean)
-        } else if (typeof rawImgs === 'string') {
-          try {
-            const parsed = JSON.parse(rawImgs)
-            if (Array.isArray(parsed)) {
-              finalImageUrls = parsed.map((img: any) => typeof img === 'string' ? img : (img?.url || img?.image_url || "")) .filter(Boolean)
-            } else {
-              finalImageUrls = [rawImgs]
+        const variantColor = v.color || v.colorName || 'Default'
+
+        const formatSingleImg = (img: any): string => {
+          if (typeof img === 'string') {
+            const trimmed = img.trim()
+            if (!trimmed) return ''
+            if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+              try {
+                const parsed = JSON.parse(trimmed)
+                if (parsed && typeof parsed === 'object') {
+                  return JSON.stringify({
+                    name: parsed.name || 'image.png',
+                    color: parsed.color || variantColor,
+                    image_url: parsed.image_url || parsed.url || ''
+                  })
+                }
+              } catch {}
             }
-          } catch {
-            finalImageUrls = [rawImgs]
+            return JSON.stringify({
+              name: 'image.png',
+              color: variantColor,
+              image_url: trimmed
+            })
+          } else if (img && typeof img === 'object') {
+            const imgUrl = img.image_url || img.url || img.imageUrl || ''
+            if (!imgUrl) return ''
+            return JSON.stringify({
+              name: img.name || 'image.png',
+              color: img.color || variantColor,
+              image_url: imgUrl
+            })
+          }
+          return ''
+        }
+
+        if (Array.isArray(rawImgs)) {
+          finalImageUrls = rawImgs.map(formatSingleImg).filter(Boolean)
+        } else if (typeof rawImgs === 'string') {
+          const trimmed = rawImgs.trim()
+          if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+            try {
+              const parsedArr = JSON.parse(trimmed)
+              if (Array.isArray(parsedArr)) {
+                finalImageUrls = parsedArr.map(formatSingleImg).filter(Boolean)
+              } else {
+                finalImageUrls = [formatSingleImg(rawImgs)].filter(Boolean)
+              }
+            } catch {
+              finalImageUrls = [formatSingleImg(rawImgs)].filter(Boolean)
+            }
+          } else if (trimmed) {
+            finalImageUrls = [formatSingleImg(rawImgs)].filter(Boolean)
           }
         }
 
