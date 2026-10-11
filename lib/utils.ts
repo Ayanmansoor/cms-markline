@@ -5,6 +5,59 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export const IMAGE_CDN_BASE_URL = (process.env.NEXT_PUBLIC_IMAGE_BASE_URL || "https://images.shopmarkline.in").replace(/\/+$/, "")
+
+/**
+ * Normalizes any image URL, GitHub raw URL, or file path to use the Cloudflare CDN domain:
+ * https://images.shopmarkline.in/{path}
+ */
+export function formatToCdnImageUrl(val: any): string {
+  if (!val) return ""
+  let str = typeof val === "string" ? val.trim() : ""
+  if (!str) return ""
+
+  // If JSON stringified object or array, attempt parsing
+  if (str.startsWith("{") || str.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(str)
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return formatToCdnImageUrl(parsed[0])
+      }
+      if (parsed && typeof parsed === "object") {
+        return formatToCdnImageUrl(parsed.image_url || parsed.url || parsed.download_url || parsed.path || "")
+      }
+    } catch {}
+  }
+
+  // Blob or data URL (local preview during upload) - keep as is
+  if (str.startsWith("blob:") || str.startsWith("data:")) {
+    return str
+  }
+
+  // Swap GitHub raw URL:
+  // e.g. https://raw.githubusercontent.com/Ayandev1/image/main/path/to/img.png
+  // or any https://raw.githubusercontent.com/:owner/:repo/:branch/:path
+  const rawGhPrefixRegex = /^https?:\/\/raw\.githubusercontent\.com\/[^\/]+\/[^\/]+\/[^\/]+\//i
+  if (rawGhPrefixRegex.test(str)) {
+    const relativePath = str.replace(rawGhPrefixRegex, "")
+    return `${IMAGE_CDN_BASE_URL}/${relativePath.replace(/^\/+/, "")}`
+  }
+
+  // If already pointing to Cloudflare CDN domain
+  if (str.startsWith(IMAGE_CDN_BASE_URL)) {
+    return str
+  }
+
+  // If it's another absolute URL (e.g. Cloudinary, S3), leave it intact
+  if (str.startsWith("http://") || str.startsWith("https://")) {
+    return str
+  }
+
+  // Bare filename or relative path (e.g. "sandals-1.png", "/category/banner.jpg")
+  const cleanPath = str.replace(/^\/+/, "")
+  return `${IMAGE_CDN_BASE_URL}/${cleanPath}`
+}
+
 export function parseImageUrl(val: any): string {
   if (!val) return ""
 
@@ -22,13 +75,20 @@ export function parseImageUrl(val: any): string {
       }
     }
 
-    // Direct HTTP(S) URL
-    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    // Blob or data URL
+    if (trimmed.startsWith("blob:") || trimmed.startsWith("data:")) {
       return trimmed
     }
 
-    // Blob or data URL
-    if (trimmed.startsWith("blob:") || trimmed.startsWith("data:")) {
+    // GitHub raw URL -> swap to Cloudflare CDN
+    const rawGhPrefixRegex = /^https?:\/\/raw\.githubusercontent\.com\/[^\/]+\/[^\/]+\/[^\/]+\//i
+    if (rawGhPrefixRegex.test(trimmed)) {
+      const relativePath = trimmed.replace(rawGhPrefixRegex, "")
+      return `${IMAGE_CDN_BASE_URL}/${relativePath.replace(/^\/+/, "")}`
+    }
+
+    // Direct HTTP(S) URL
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
       return trimmed
     }
 
@@ -40,7 +100,7 @@ export function parseImageUrl(val: any): string {
     // Domain or filename with extension (e.g. sandals-1.png)
     if (trimmed.includes(".") && !trimmed.includes(" ")) {
       const cleanPath = trimmed.replace(/^\/+/, '')
-      return `https://raw.githubusercontent.com/Ayandev1/image/main/${cleanPath}`
+      return `${IMAGE_CDN_BASE_URL}/${cleanPath}`
     }
 
     return ""

@@ -38,6 +38,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400 })
     }
 
+    const isMultipleValue = body.Is_multiple || body.is_multiple || 'SINGLE'
+
     const { data, error } = await supabase
       .from('collectionBanner')
       .insert({
@@ -48,7 +50,8 @@ export async function POST(request: Request) {
         isMobile: isMobile ?? false,
         isEnable: isEnable ?? true,
         collection_id: collection_id ? parseInt(collection_id.toString(), 10) : null,
-        home_promotional: home_promotional ?? false
+        home_promotional: home_promotional ?? false,
+        Is_multiple: isMultipleValue
       })
       .select()
       .single()

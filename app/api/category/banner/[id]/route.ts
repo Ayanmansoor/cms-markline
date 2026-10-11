@@ -32,6 +32,9 @@ export async function PUT(
       updatePayload.collection_id = collection_id ? parseInt(collection_id.toString(), 10) : null
     }
     if (home_promotional !== undefined) updatePayload.home_promotional = home_promotional
+    if (body.Is_multiple !== undefined || body.is_multiple !== undefined) {
+      updatePayload.Is_multiple = body.Is_multiple || body.is_multiple
+    }
 
     const { data, error } = await supabase
       .from('collectionBanner')

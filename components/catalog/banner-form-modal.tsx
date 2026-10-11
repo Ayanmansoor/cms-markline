@@ -68,7 +68,7 @@ export function BannerFormModal({
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
             {/* Gender configuration */}
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-slate-900 block">Target Gender</Label>
@@ -90,12 +90,24 @@ export function BannerFormModal({
                 {...register("bannerCollectionId")}
                 className="w-full h-10 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-900 focus:bg-white focus:border-slate-400 focus:ring-2 focus:ring-slate-900/10 outline-none transition-all"
               >
-                <option value="">-- None (Do not link to any collection) --</option>
+                <option value="">-- None --</option>
                 {collectionOptions.map((c: any) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
                   </option>
                 ))}
+              </select>
+            </div>
+
+            {/* Is_multiple configuration */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-slate-900 block">Banner Mode (Is Multiple)</Label>
+              <select
+                {...register("bannerIsMultiple")}
+                className="w-full h-10 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-900 focus:bg-white focus:border-slate-400 focus:ring-2 focus:ring-slate-900/10 outline-none transition-all font-semibold"
+              >
+                <option value="SINGLE">Single (SINGLE)</option>
+                <option value="MULTIPLE">Multiple (MULTIPLE)</option>
               </select>
             </div>
           </div>

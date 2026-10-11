@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient } from '@supabase/supabase-js'
+import { formatToCdnImageUrl } from '@/lib/utils'
 
 async function getSupabaseClient() {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -133,10 +134,11 @@ export async function PUT(
               try {
                 const parsed = JSON.parse(trimmed)
                 if (parsed && typeof parsed === 'object') {
+                  const targetUrl = parsed.image_url || parsed.url || ''
                   return JSON.stringify({
                     name: parsed.name || 'image.png',
                     color: parsed.color || variantColor,
-                    image_url: parsed.image_url || parsed.url || ''
+                    image_url: formatToCdnImageUrl(targetUrl)
                   })
                 }
               } catch {}
@@ -144,7 +146,7 @@ export async function PUT(
             return JSON.stringify({
               name: 'image.png',
               color: variantColor,
-              image_url: trimmed
+              image_url: formatToCdnImageUrl(trimmed)
             })
           } else if (img && typeof img === 'object') {
             const imgUrl = img.image_url || img.url || img.imageUrl || ''
@@ -152,7 +154,7 @@ export async function PUT(
             return JSON.stringify({
               name: img.name || 'image.png',
               color: img.color || variantColor,
-              image_url: imgUrl
+              image_url: formatToCdnImageUrl(imgUrl)
             })
           }
           return ''

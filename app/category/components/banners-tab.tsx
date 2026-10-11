@@ -29,6 +29,7 @@ interface BannerFormValues {
   bannerIsEnable: boolean
   bannerCollectionId: string
   bannerHomePromotional: boolean
+  bannerIsMultiple: "SINGLE" | "MULTIPLE"
 }
 
 const defaultFormValues: BannerFormValues = {
@@ -41,6 +42,7 @@ const defaultFormValues: BannerFormValues = {
   bannerIsEnable: true,
   bannerCollectionId: "",
   bannerHomePromotional: false,
+  bannerIsMultiple: "SINGLE",
 }
 
 export function BannersTab({ externalAddOpen, onExternalAddClose }: { externalAddOpen?: boolean; onExternalAddClose?: () => void }) {
@@ -140,6 +142,7 @@ export function BannersTab({ externalAddOpen, onExternalAddClose }: { externalAd
       bannerIsEnable: banner.isEnable !== false,
       bannerCollectionId: banner.collection_id ? banner.collection_id.toString() : "",
       bannerHomePromotional: !!banner.home_promotional,
+      bannerIsMultiple: (banner.Is_multiple || banner.is_multiple || "SINGLE") as "SINGLE" | "MULTIPLE",
     })
     setBannerImageUploadMethod("url")
     setIsBannerDialogOpen(true)
@@ -177,6 +180,8 @@ export function BannersTab({ externalAddOpen, onExternalAddClose }: { externalAd
       isEnable: v.bannerIsEnable,
       collection_id: v.bannerCollectionId ? parseInt(v.bannerCollectionId, 10) : null,
       home_promotional: v.bannerHomePromotional,
+      Is_multiple: v.bannerIsMultiple || "SINGLE",
+      is_multiple: v.bannerIsMultiple || "SINGLE",
     }
 
     if (v.id) {
@@ -246,6 +251,7 @@ export function BannersTab({ externalAddOpen, onExternalAddClose }: { externalAd
               <TableHead className="h-11 text-xs font-semibold text-slate-600">URL Route</TableHead>
               <TableHead className="h-11 text-xs font-semibold text-slate-600">Device Target</TableHead>
               <TableHead className="h-11 text-xs font-semibold text-slate-600">Gender</TableHead>
+              <TableHead className="h-11 text-xs font-semibold text-slate-600">Banner Type</TableHead>
               <TableHead className="h-11 text-xs font-semibold text-slate-600">Status</TableHead>
               <TableHead className="h-11 text-xs font-semibold text-slate-600 text-right pr-6">Action</TableHead>
             </TableRow>
@@ -253,7 +259,7 @@ export function BannersTab({ externalAddOpen, onExternalAddClose }: { externalAd
           <TableBody>
             {filteredBanners.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center text-xs font-semibold text-slate-400">
+                <TableCell colSpan={7} className="h-32 text-center text-xs font-semibold text-slate-400">
                   No collection banners found.
                 </TableCell>
               </TableRow>
@@ -302,6 +308,17 @@ export function BannersTab({ externalAddOpen, onExternalAddClose }: { externalAd
                     </TableCell>
                     <TableCell className="text-slate-500 font-bold capitalize text-[10px]">
                       {banner.gender || "All"}
+                    </TableCell>
+                    <TableCell>
+                      {banner.Is_multiple === "MULTIPLE" || banner.is_multiple === "MULTIPLE" ? (
+                        <Badge className="bg-purple-50 text-purple-700 border-purple-200/80 text-[10px] font-bold capitalize">
+                          Multiple
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-slate-600 border-slate-200 text-[10px] font-bold capitalize">
+                          Single
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">

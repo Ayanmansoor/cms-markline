@@ -103,8 +103,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: data?.message || 'GitHub upload failed' }, { status: response ? response.status : 500 })
     }
 
-    const rawImageUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${targetPath}`
-    return NextResponse.json({ success: true, url: rawImageUrl })
+    const imageBase = (process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'https://images.shopmarkline.in').replace(/\/+$/, '')
+    const cdnImageUrl = `${imageBase}/${targetPath.replace(/^\/+/, '')}`
+    return NextResponse.json({ success: true, url: cdnImageUrl })
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Failed to upload file to GitHub' }, { status: 500 })
   }

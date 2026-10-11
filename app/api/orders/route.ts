@@ -1,27 +1,10 @@
 import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient } from '@supabase/supabase-js'
-import { parseImageUrl } from '@/lib/utils'
+import { parseImageUrl, formatToCdnImageUrl } from '@/lib/utils'
 
 const formatImageUrl = (raw: any): string => {
-  if (!raw) return ''
-  let str = ''
-  if (Array.isArray(raw) && raw.length > 0) {
-    str = typeof raw[0] === 'string' ? raw[0] : ''
-  } else if (typeof raw === 'string') {
-    str = raw
-  }
-  if (!str) return ''
-  try {
-    const parsed = JSON.parse(str)
-    str = parsed.download_url || parsed.url || parsed.image_url || parsed.path || str
-  } catch {
-    // string fallback
-  }
-  if (str && !str.startsWith('http://') && !str.startsWith('https://')) {
-    str = `https://raw.githubusercontent.com/Ayandev1/image/main/${str}`
-  }
-  return str
+  return formatToCdnImageUrl(raw)
 }
 
 export async function GET(request: Request) {

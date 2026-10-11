@@ -11,6 +11,7 @@ import { SeoTab } from "@/components/products/seo-tab"
 import { VariantsTab, Variant, VariantImage, parseVariantImage } from "@/components/products/variants-tab"
 import { uploadService } from "@/services/upload.service"
 import { toast } from "sonner"
+import { formatToCdnImageUrl } from "@/lib/utils"
 
 interface ProductUpdateFormProps {
   productId: string | number
@@ -145,7 +146,7 @@ export function formatVariantImagesForDb(images: VariantImage[], colorName: stri
   return (images || []).map((img) => {
     const imgName = img.name || "image.png"
     const color = colorName || "Default"
-    const url = img.url || ""
+    const url = formatToCdnImageUrl(img.url || "")
     return JSON.stringify({
       name: imgName,
       color: color,
@@ -190,9 +191,10 @@ export function parseVariantImagesFromData(raw: any): VariantImage[] {
         try {
           const parsed = JSON.parse(trimmed)
           if (parsed && typeof parsed === "object") {
+            const rawUrl = parsed.image_url || parsed.url || parsed.imageUrl || ""
             return {
               id: parsed.id || String(idx),
-              url: parsed.image_url || parsed.url || parsed.imageUrl || "",
+              url: formatToCdnImageUrl(rawUrl),
               name: parsed.name || `image_${idx + 1}.png`,
               isNew: false,
             }
@@ -200,14 +202,15 @@ export function parseVariantImagesFromData(raw: any): VariantImage[] {
         } catch { }
         return {
           id: String(idx),
-          url: trimmed,
+          url: formatToCdnImageUrl(trimmed),
           name: `image_${idx + 1}.png`,
           isNew: false,
         }
       } else if (typeof item === "object") {
+        const rawUrl = item.url || item.image_url || item.imageUrl || ""
         return {
           id: item.id || String(idx),
-          url: item.url || item.image_url || item.imageUrl || "",
+          url: formatToCdnImageUrl(rawUrl),
           name: item.name || `image_${idx + 1}.png`,
           isNew: false,
           size: item.size,

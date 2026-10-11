@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { PlusIcon, Trash2, ChevronDownIcon, UploadCloud, FolderIcon, Loader2 } from "lucide-react"
 import { toast } from "sonner"
+import { formatToCdnImageUrl } from "@/lib/utils"
 
 export interface VariantImage {
   id: string
@@ -49,9 +50,10 @@ export function parseVariantImage(val: string | any): VariantImage {
   if (!val) return { id: String(Math.random()), url: "", name: "", isNew: false }
 
   if (typeof val === 'object' && (val.url || val.image_url)) {
+    const rawUrl = val.url || val.image_url
     return {
       id: val.id || String(Math.random()),
-      url: val.url || val.image_url,
+      url: val.file || String(rawUrl).startsWith("blob:") ? rawUrl : formatToCdnImageUrl(rawUrl),
       name: val.name || "image.png",
       size: val.size,
       isNew: !!val.isNew,
@@ -64,9 +66,10 @@ export function parseVariantImage(val: string | any): VariantImage {
   try {
     const parsed = JSON.parse(cleanVal)
     if (parsed && typeof parsed === "object") {
+      const rawUrl = parsed.image_url || parsed.url || parsed.url_val || parsed.imageUrl || ""
       return {
         id: parsed.id || String(Math.random()),
-        url: parsed.image_url || parsed.url || parsed.url_val || parsed.imageUrl || "",
+        url: formatToCdnImageUrl(rawUrl),
         name: parsed.name || "image.png",
         size: parsed.size,
         isNew: false
@@ -76,7 +79,12 @@ export function parseVariantImage(val: string | any): VariantImage {
     // Fallback if the value is a plain URL string
   }
 
-  return { id: String(Math.random()), url: cleanVal, name: "image.png", isNew: false }
+  return {
+    id: String(Math.random()),
+    url: cleanVal.startsWith("blob:") ? cleanVal : formatToCdnImageUrl(cleanVal),
+    name: "image.png",
+    isNew: false
+  }
 }
 
 export function VariantsTab({
